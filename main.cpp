@@ -82,8 +82,9 @@ makeSphereScene()
 	g_scene->addLight(light);
 
 	Material* mat = new Lambert(Vector3(1.0f));
+	Material* matSphere = new Lambert(Vector3(1.0f,0.0f,0.0f));
 
-	/*
+	
 	TriangleMesh * sphere = new TriangleMesh;
 	sphere->load("models/sphere.obj");
 
@@ -93,10 +94,10 @@ makeSphereScene()
 		Triangle* t = new Triangle;
 		t->setIndex(i);
 		t->setMesh(sphere);
-		t->setMaterial(mat);
+		t->setMaterial(matSphere);
 		g_scene->addObject(t);
 	}
-	*/
+	
 
 	// create the floor triangle
 	TriangleMesh * floor = new TriangleMesh;
@@ -182,9 +183,9 @@ int
 main(int argc, char*argv[])
 {
     // create a scene
-    makeSpiralScene();
+    //makeSpiralScene();
 	//makeBunnyScene();
-	//makeSphereScene();
+	makeSphereScene();
 
     MiroWindow miro(&argc, argv);
     miro.mainLoop();
