@@ -44,6 +44,7 @@ public:
     Ray eyeRay(int x, int y, int imageWidth, int imageHeight);
     
     void drawGL();
+	void PrintCamera();
 
 private:
 

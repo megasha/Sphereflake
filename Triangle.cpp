@@ -41,6 +41,11 @@ Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
 	const Vector3 & v1 = m_mesh->vertices()[ti3.y]; //vertex b of triangle
 	const Vector3 & v2 = m_mesh->vertices()[ti3.z]; //vertex c of triangle
 
+	ti3 = m_mesh->nIndices()[m_index];
+	const Vector3 & n0 = m_mesh->normals()[ti3.x];
+	const Vector3 & n1 = m_mesh->normals()[ti3.y];
+	const Vector3 & n2 = m_mesh->normals()[ti3.z];
+
 	Vector3 AB = v1 - v0;
 	Vector3 AC = v2 - v0;
 
@@ -71,6 +76,9 @@ Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
 	beta /= detA;
 
 	if (alpha < 0 || beta < 0 || alpha + beta > 1) return false;
+
+	//Compute interpolated normal
+	normal = (1 - alpha - beta)*n0 + alpha*n1 + beta*n2;
 
 	result.t = t;
 	result.N = normal.normalize();

@@ -32,7 +32,7 @@ void motion(int x, int y) {g_miroWindow->motion(x,y);}
 
 
 MiroWindow::MiroWindow(int * argc, char* argv[]) :
-    m_scaleFact(0.1f),
+    m_scaleFact(0.5f),
     m_activeButton(0),
     m_mouseX(0),
     m_mouseY(0)
@@ -206,6 +206,11 @@ MiroWindow::keyboard(unsigned char key, int x, int y)
         case 'Z':
             g_camera->setEye(g_camera->eye() - m_scaleFact*g_camera->up());
         break;
+
+		case 'p':
+		case 'P':
+			g_camera->PrintCamera();
+		break;
 
         case 'a':
         case 'A':

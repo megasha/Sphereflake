@@ -93,6 +93,16 @@ Camera::drawGL()
               up().x, up().y, up().z);
 }
 
+void
+Camera::PrintCamera()
+{
+	std::cout << "\nEye: " << m_eye << std::endl;
+	std::cout << "LookAt: " << m_lookAt << std::endl;
+	std::cout << "Up: " << m_up << std::endl;
+	std::cout << "FOV: " << m_fov << std::endl;
+	std::cout << "ViewDir: " << m_viewDir << std::endl;
+}
+
 
 Ray
 Camera::eyeRay(int x, int y, int imageWidth, int imageHeight)

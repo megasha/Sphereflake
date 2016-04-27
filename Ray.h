@@ -8,16 +8,22 @@ class Ray
 public:
     Vector3 o,      //!< Origin of ray
             d;      //!< Direction of ray
+	unsigned int rayNum;
 
-    Ray() : o(), d(Vector3(0.0f,0.0f,1.0f))
+    Ray() : o(), d(Vector3(0.0f,0.0f,1.0f)), rayNum(0)
     {
         // empty
     }
 
-    Ray(const Vector3& o, const Vector3& d) : o(o), d(d)
+	Ray(const Vector3& o, const Vector3& d) : o(o), d(d), rayNum(0)
     {
         // empty
     }
+
+	Ray(const Vector3& o, const Vector3& d, const unsigned int n) : o(o), d(d), rayNum(n)
+	{
+		// empty
+	}
 };
 
 
