@@ -21,6 +21,9 @@ public:
     void preCalc();
     void openGL(Camera *cam);
 
+	void setBackground(const Vector3 & b) { m_bg = b; }
+	const Vector3 & bg() const { return m_bg; }
+
     void raytraceImage(Camera *cam, Image *img);
     bool trace(HitInfo& minHit, const Ray& ray,
                float tMin = 0.0f, float tMax = MIRO_TMAX) const;
@@ -29,6 +32,7 @@ protected:
     Objects m_objects;
     BVH m_bvh;
     Lights m_lights;
+	Vector3 m_bg;
 };
 
 extern Scene * g_scene;
