@@ -11,6 +11,7 @@
 #include "Triangle.h"
 #include "Lambert.h"
 #include "MiroWindow.h"
+#include "assignment2.h"
 
 void
 makeSpiralScene()
@@ -138,7 +139,7 @@ makeSphereScene()
 }
 
 void
-makeTeapotScene()
+makeOldTeapotScene()
 {
 	g_camera = new Camera;
 	g_scene = new Scene;
@@ -391,9 +392,16 @@ main(int argc, char*argv[])
     // create a scene
     //makeSpiralScene();
 	//makeBunnyScene();
-	//makeTeapotScene();
+	//makeOldTeapotScene();
 	//makeSphereScene();
-	makeTestScene();
+	//makeTestScene();
+
+	//Assignment 2
+	makeTeapotScene();
+	//makeBunny1Scene();
+	//makeBunny20Scene();
+	//makeSponzaScene();
+
 
     MiroWindow miro(&argc, argv);
     miro.mainLoop();

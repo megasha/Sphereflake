@@ -49,7 +49,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
 
     Vector3 L = Vector3(0.0f, 0.0f, 0.0f);
 
-	if (ray.rayNum > 4) return L;
+	if (ray.rayNum > 1) return L;
     
     const Vector3 viewDir = ray.d; // d is a unit vector
     
@@ -88,15 +88,21 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
 		shadow_ray.o = hit.P;
 		shadow_ray.d = l;
 		HitInfo shadow_hit;
+		/*
 		if (scene.trace(shadow_hit, shadow_ray, 0.001f, sqrt(falloff))){}
 		else {
 			L += std::max(0.0f, irradiance) * result;
 			L += m_ks * pHighlight*std::max(0.0f, irradiance);
 		}
+		*/
+
+		L += std::max(0.0f, irradiance) * result;
+		L += m_ks * pHighlight*std::max(0.0f, irradiance);
 
     }
 
 	//Specular reflection
+	/*
 	Vector3 reflection = -2 * dot(viewDir, hit.N) * hit.N + viewDir;
 	Ray ray2;
 	ray2.o = hit.P;
@@ -108,9 +114,11 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
 	}
 	else
 		L += m_reflec * scene.bg();
+	*/
 	
 	
 	//Specular refraction
+	/*
 	float n1 = 1.00029f;
 	float n2 = 1.6f;
 	float n = n1 / n2;
@@ -153,6 +161,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
 		L += m_refrac * stage3.material->shade(ray3, stage3, scene);
 	}
 	else L += m_refrac *scene.bg();
+	*/
 	
     
     // Ambient component

@@ -3,6 +3,7 @@
 
 #include "Miro.h"
 #include "Object.h"
+#include "BBox.h"
 
 class BVH
 {
@@ -14,6 +15,7 @@ public:
 
 protected:
     Objects * m_objects;
+	BBox *mainBox;
 };
 
 #endif // CSE168_BVH_H_INCLUDED

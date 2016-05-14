@@ -15,6 +15,58 @@ Triangle::~Triangle()
 
 }
 
+Vector3
+Triangle::getMin()
+{
+	Vector3 min;
+
+	TriangleMesh::TupleI3 ti3 = m_mesh->vIndices()[m_index];
+	const Vector3 & v0 = m_mesh->vertices()[ti3.x]; //vertex a of triangle
+	const Vector3 & v1 = m_mesh->vertices()[ti3.y]; //vertex b of triangle
+	const Vector3 & v2 = m_mesh->vertices()[ti3.z]; //vertex c of triangle
+
+	min.x = v0.x;
+	min.y = v0.y;
+	min.z = v0.z;
+
+	if (min.x > v1.x) min.x = v1.x;
+	if (min.x > v2.x) min.x = v2.x;
+
+	if (min.y > v1.y) min.y = v1.y;
+	if (min.y > v2.y) min.y = v2.y;
+
+	if (min.z > v1.z) min.z = v1.z;
+	if (min.z > v2.z) min.z = v2.z;
+
+	return min;
+}
+
+Vector3
+Triangle::getMax()
+{
+	Vector3 max;
+
+	TriangleMesh::TupleI3 ti3 = m_mesh->vIndices()[m_index];
+	const Vector3 & v0 = m_mesh->vertices()[ti3.x]; //vertex a of triangle
+	const Vector3 & v1 = m_mesh->vertices()[ti3.y]; //vertex b of triangle
+	const Vector3 & v2 = m_mesh->vertices()[ti3.z]; //vertex c of triangle
+
+	max.x = v0.x;
+	max.y = v0.y;
+	max.z = v0.z;
+
+	if (max.x < v1.x) max.x = v1.x;
+	if (max.x < v2.x) max.x = v2.x;
+
+	if (max.y < v1.y) max.y = v1.y;
+	if (max.y < v2.y) max.y = v2.y;
+
+	if (max.z < v1.z) max.z = v1.z;
+	if (max.z < v2.z) max.z = v2.z;
+
+	return max;
+}
+
 
 void
 Triangle::renderGL()

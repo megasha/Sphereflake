@@ -15,6 +15,9 @@ public:
 
     virtual void renderGL() {}
     virtual void preCalc() {}
+	virtual bool isLeaf() { return true; }
+	virtual Vector3 getMin() { return Vector3(0.0f, 0.0f, 0.0f); }
+	virtual Vector3 getMax() { return Vector3(0.0f, 0.0f, 0.0f); }
 
 
     virtual bool intersect(HitInfo& result, const Ray& ray,
