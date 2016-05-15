@@ -9,19 +9,17 @@ BVH::build(Objects * objs)
 {
 	m_objects = objs;
 
-	Objects allPrimatives = *m_objects;
-
-	std::vector<BBox*> BBoxes;
+	Objects BBoxes;
 
 	//Put bounding box over all primatives
 	for (size_t i = 0; i < objs->size(); ++i) {
-		BBox *aBox = new BBox((*objs)[i]->getMin(), (*objs)[i]->getMax(), (*objs)[i]);
+		BBox *aBox = new BBox((*objs)[i]->getMin(), (*objs)[i]->getMax(), (*objs)[i], true);
 		BBoxes.push_back(aBox);
 	}
 	
 	for (int i = 0; i < BBoxes.size(); i++)
 	{
-		m_objects->push_back(BBoxes[i]);
+		//m_objects->push_back(BBoxes[i]);
 	}
 
 	//Calculate main box
@@ -45,10 +43,11 @@ BVH::build(Objects * objs)
 		if (max.z < tempMax.z) max.z = tempMax.z;
 	}
 
-	mainBox = new BBox(min, max, allPrimatives);
-	m_objects->push_back(mainBox);
+	mainBox = new BBox(min, max, BBoxes);
+	//m_objects->push_back(mainBox);
 
 	//Split mainbox
+	mainBox->split(m_objects);
 
 	
 }
@@ -68,6 +67,9 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
 		if (mainBox->isLeaf()){
 			hit = mainBox->bvhIntersect(tempMinHit, ray, tempMinHit.t, tMax);
 			minHit = tempMinHit;
+		}
+		else {
+
 		}
 	}
     

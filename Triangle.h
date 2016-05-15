@@ -18,6 +18,7 @@ public:
 
 	virtual Vector3 getMin();
 	virtual Vector3 getMax();
+	virtual Vector3 getCenter();
 
     virtual void renderGL();
     virtual bool intersect(HitInfo& result, const Ray& ray,

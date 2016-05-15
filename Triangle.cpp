@@ -67,6 +67,18 @@ Triangle::getMax()
 	return max;
 }
 
+Vector3
+Triangle::getCenter() {
+	Vector3 ret;
+	TriangleMesh::TupleI3 ti3 = m_mesh->vIndices()[m_index];
+	const Vector3 & v0 = m_mesh->vertices()[ti3.x]; //vertex a of triangle
+	const Vector3 & v1 = m_mesh->vertices()[ti3.y]; //vertex b of triangle
+	const Vector3 & v2 = m_mesh->vertices()[ti3.z]; //vertex c of triangle
+
+	ret = (v0 + v1 + v2) / 3;
+	return ret;
+}
+
 
 void
 Triangle::renderGL()
