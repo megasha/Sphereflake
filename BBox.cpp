@@ -128,8 +128,8 @@ BBox::bvhIntersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) cons
 	return hit;
 }
 
-void BBox::split(Objects *gl_objects) {
-	unsigned int numBins = 10;
+void BBox::split(Objects *gl_objects, unsigned int recurse) {
+	unsigned int numBins = 16;
 	float costX, costY, costZ;
 
 	Vector3 range;
@@ -283,6 +283,7 @@ void BBox::split(Objects *gl_objects) {
 		rightTriangles = 0;
 	}
 
+	
 	float cost = costX;
 	unsigned int axisCost = 0;
 
@@ -378,8 +379,7 @@ void BBox::split(Objects *gl_objects) {
 			}
 	}
 
-	//THIS PART IS FUCKING HARD
-
+	/*
 	Vector3 minLeft, minRight, maxLeft, maxRight;
 
 	if (axisCost == 0) {
@@ -392,22 +392,38 @@ void BBox::split(Objects *gl_objects) {
 			if (minLeft.x > binX[leftMin][i]->getMin().x)  minLeft.x = binX[leftMin][i]->getMin().x;
 			if (minLeft.y > binX[leftMin][i]->getMin().y)  minLeft.y = binX[leftMin][i]->getMin().y;
 			if (minLeft.z > binX[leftMin][i]->getMin().z)  minLeft.z = binX[leftMin][i]->getMin().z;
+
+			if (maxLeft.x < binX[leftMin][i]->getMax().x)  maxLeft.x = binX[leftMin][i]->getMax().x;
+			if (maxLeft.y < binX[leftMin][i]->getMax().y)  maxLeft.y = binX[leftMin][i]->getMax().y;
+			if (maxLeft.z < binX[leftMin][i]->getMax().z)  maxLeft.z = binX[leftMin][i]->getMax().z;
 		}
 		for (int i = 0; i < binX[leftMax].size(); i++) {
 			if (maxLeft.x < binX[leftMax][i]->getMax().x)  maxLeft.x = binX[leftMax][i]->getMax().x;
 			if (maxLeft.y < binX[leftMax][i]->getMax().y)  maxLeft.y = binX[leftMax][i]->getMax().y;
 			if (maxLeft.z < binX[leftMax][i]->getMax().z)  maxLeft.z = binX[leftMax][i]->getMax().z;
+
+			if (minLeft.x > binX[leftMax][i]->getMin().x)  minLeft.x = binX[leftMax][i]->getMin().x;
+			if (minLeft.y > binX[leftMax][i]->getMin().y)  minLeft.y = binX[leftMax][i]->getMin().y;
+			if (minLeft.z > binX[leftMax][i]->getMin().z)  minLeft.z = binX[leftMax][i]->getMin().z;
 		}
 
 		for (int i = 0; i < binX[rightMin].size(); i++) {
 			if (minRight.x > binX[rightMin][i]->getMin().x)  minRight.x = binX[rightMin][i]->getMin().x;
 			if (minRight.y > binX[rightMin][i]->getMin().y)  minRight.y = binX[rightMin][i]->getMin().y;
 			if (minRight.z > binX[rightMin][i]->getMin().z)  minRight.z = binX[rightMin][i]->getMin().z;
+
+			if (maxRight.x < binX[rightMin][i]->getMax().x)  maxRight.x = binX[rightMin][i]->getMax().x;
+			if (maxRight.y < binX[rightMin][i]->getMax().y)  maxRight.y = binX[rightMin][i]->getMax().y;
+			if (maxRight.z < binX[rightMin][i]->getMax().z)  maxRight.z = binX[rightMin][i]->getMax().z;
 		}
 		for (int i = 0; i < binX[rightMax].size(); i++) {
 			if (maxRight.x < binX[rightMax][i]->getMax().x)  maxRight.x = binX[rightMax][i]->getMax().x;
 			if (maxRight.y < binX[rightMax][i]->getMax().y)  maxRight.y = binX[rightMax][i]->getMax().y;
 			if (maxRight.z < binX[rightMax][i]->getMax().z)  maxRight.z = binX[rightMax][i]->getMax().z;
+
+			if (minRight.x > binX[rightMax][i]->getMin().x)  minRight.x = binX[rightMax][i]->getMin().x;
+			if (minRight.y > binX[rightMax][i]->getMin().y)  minRight.y = binX[rightMax][i]->getMin().y;
+			if (minRight.z > binX[rightMax][i]->getMin().z)  minRight.z = binX[rightMax][i]->getMin().z;
 		}
 	}
 
@@ -421,22 +437,39 @@ void BBox::split(Objects *gl_objects) {
 			if (minLeft.x > binY[leftMin][i]->getMin().x)  minLeft.x = binY[leftMin][i]->getMin().x;
 			if (minLeft.y > binY[leftMin][i]->getMin().y)  minLeft.y = binY[leftMin][i]->getMin().y;
 			if (minLeft.z > binY[leftMin][i]->getMin().z)  minLeft.z = binY[leftMin][i]->getMin().z;
+			
+			if (maxLeft.x < binY[leftMin][i]->getMax().x)  maxLeft.x = binY[leftMin][i]->getMax().x;
+			if (maxLeft.y < binY[leftMin][i]->getMax().y)  maxLeft.y = binY[leftMin][i]->getMax().y;
+			if (maxLeft.z < binY[leftMin][i]->getMax().z)  maxLeft.z = binY[leftMin][i]->getMax().z;
+
 		}
 		for (int i = 0; i < binY[leftMax].size(); i++) {
 			if (maxLeft.x < binY[leftMax][i]->getMax().x)  maxLeft.x = binY[leftMax][i]->getMax().x;
 			if (maxLeft.y < binY[leftMax][i]->getMax().y)  maxLeft.y = binY[leftMax][i]->getMax().y;
 			if (maxLeft.z < binY[leftMax][i]->getMax().z)  maxLeft.z = binY[leftMax][i]->getMax().z;
+			
+			if (minLeft.x > binY[leftMax][i]->getMin().x)  minLeft.x = binY[leftMax][i]->getMin().x;
+			if (minLeft.y > binY[leftMax][i]->getMin().y)  minLeft.y = binY[leftMax][i]->getMin().y;
+			if (minLeft.z > binY[leftMax][i]->getMin().z)  minLeft.z = binY[leftMax][i]->getMin().z;
 		}
 
 		for (int i = 0; i < binY[rightMin].size(); i++) {
 			if (minRight.x > binY[rightMin][i]->getMin().x)  minRight.x = binY[rightMin][i]->getMin().x;
 			if (minRight.y > binY[rightMin][i]->getMin().y)  minRight.y = binY[rightMin][i]->getMin().y;
 			if (minRight.z > binY[rightMin][i]->getMin().z)  minRight.z = binY[rightMin][i]->getMin().z;
+			
+			if (maxRight.x < binY[rightMin][i]->getMax().x)  maxRight.x = binY[rightMin][i]->getMax().x;
+			if (maxRight.y < binY[rightMin][i]->getMax().y)  maxRight.y = binY[rightMin][i]->getMax().y;
+			if (maxRight.z < binY[rightMin][i]->getMax().z)  maxRight.z = binY[rightMin][i]->getMax().z;
 		}
 		for (int i = 0; i < binY[rightMax].size(); i++) {
 			if (maxRight.x < binY[rightMax][i]->getMax().x)  maxRight.x = binY[rightMax][i]->getMax().x;
 			if (maxRight.y < binY[rightMax][i]->getMax().y)  maxRight.y = binY[rightMax][i]->getMax().y;
 			if (maxRight.z < binY[rightMax][i]->getMax().z)  maxRight.z = binY[rightMax][i]->getMax().z;
+			
+			if (minRight.x > binY[rightMax][i]->getMin().x)  minRight.x = binY[rightMax][i]->getMin().x;
+			if (minRight.y > binY[rightMax][i]->getMin().y)  minRight.y = binY[rightMax][i]->getMin().y;
+			if (minRight.z > binY[rightMax][i]->getMin().z)  minRight.z = binY[rightMax][i]->getMin().z;
 		}
 	}
 
@@ -450,24 +483,41 @@ void BBox::split(Objects *gl_objects) {
 			if (minLeft.x > binZ[leftMin][i]->getMin().x)  minLeft.x = binZ[leftMin][i]->getMin().x;
 			if (minLeft.y > binZ[leftMin][i]->getMin().y)  minLeft.y = binZ[leftMin][i]->getMin().y;
 			if (minLeft.z > binZ[leftMin][i]->getMin().z)  minLeft.z = binZ[leftMin][i]->getMin().z;
+
+			if (maxLeft.x < binZ[leftMin][i]->getMax().x)  maxLeft.x = binZ[leftMin][i]->getMax().x;
+			if (maxLeft.y < binZ[leftMin][i]->getMax().y)  maxLeft.y = binZ[leftMin][i]->getMax().y;
+			if (maxLeft.z < binZ[leftMin][i]->getMax().z)  maxLeft.z = binZ[leftMin][i]->getMax().z;
 		}
 		for (int i = 0; i < binZ[leftMax].size(); i++) {
 			if (maxLeft.x < binZ[leftMax][i]->getMax().x)  maxLeft.x = binZ[leftMax][i]->getMax().x;
 			if (maxLeft.y < binZ[leftMax][i]->getMax().y)  maxLeft.y = binZ[leftMax][i]->getMax().y;
 			if (maxLeft.z < binZ[leftMax][i]->getMax().z)  maxLeft.z = binZ[leftMax][i]->getMax().z;
+
+			if (minLeft.x > binZ[leftMax][i]->getMin().x)  minLeft.x = binZ[leftMax][i]->getMin().x;
+			if (minLeft.y > binZ[leftMax][i]->getMin().y)  minLeft.y = binZ[leftMax][i]->getMin().y;
+			if (minLeft.z > binZ[leftMax][i]->getMin().z)  minLeft.z = binZ[leftMax][i]->getMin().z;
 		}
 
 		for (int i = 0; i < binZ[rightMin].size(); i++) {
 			if (minRight.x > binZ[rightMin][i]->getMin().x)  minRight.x = binZ[rightMin][i]->getMin().x;
 			if (minRight.y > binZ[rightMin][i]->getMin().y)  minRight.y = binZ[rightMin][i]->getMin().y;
 			if (minRight.z > binZ[rightMin][i]->getMin().z)  minRight.z = binZ[rightMin][i]->getMin().z;
+
+			if (maxRight.x < binZ[rightMin][i]->getMax().x)  maxRight.x = binZ[rightMin][i]->getMax().x;
+			if (maxRight.y < binZ[rightMin][i]->getMax().y)  maxRight.y = binZ[rightMin][i]->getMax().y;
+			if (maxRight.z < binZ[rightMin][i]->getMax().z)  maxRight.z = binZ[rightMin][i]->getMax().z;
 		}
 		for (int i = 0; i < binZ[rightMax].size(); i++) {
 			if (maxRight.x < binZ[rightMax][i]->getMax().x)  maxRight.x = binZ[rightMax][i]->getMax().x;
 			if (maxRight.y < binZ[rightMax][i]->getMax().y)  maxRight.y = binZ[rightMax][i]->getMax().y;
 			if (maxRight.z < binZ[rightMax][i]->getMax().z)  maxRight.z = binZ[rightMax][i]->getMax().z;
+
+			if (minRight.x > binZ[rightMax][i]->getMin().x)  minRight.x = binZ[rightMax][i]->getMin().x;
+			if (minRight.y > binZ[rightMax][i]->getMin().y)  minRight.y = binZ[rightMax][i]->getMin().y;
+			if (minRight.z > binZ[rightMax][i]->getMin().z)  minRight.z = binZ[rightMax][i]->getMin().z;
 		}
 	}
+	*/
 
 	//Populate left and right leaf boxes
 	Objects leftChildren, rightChildren;
@@ -508,6 +558,40 @@ void BBox::split(Objects *gl_objects) {
 		}
 	}
 
+	Vector3 minLeft, minRight, maxLeft, maxRight;
+	Vector3 tempMin, tempMax;
+	minLeft = leftChildren[0]->getMin();
+	maxLeft = leftChildren[0]->getMax();
+
+	for (int i = 0; i < leftChildren.size(); i++) {
+		tempMin = leftChildren[i]->getMin();
+		tempMax = leftChildren[i]->getMax();
+
+		if (minLeft.x > tempMin.x) minLeft.x = tempMin.x;
+		if (minLeft.y > tempMin.y) minLeft.y = tempMin.y;
+		if (minLeft.z > tempMin.z) minLeft.z = tempMin.z;
+
+		if (maxLeft.x < tempMax.x) maxLeft.x = tempMax.x;
+		if (maxLeft.y < tempMax.y) maxLeft.y = tempMax.y;
+		if (maxLeft.z < tempMax.z) maxLeft.z = tempMax.z;
+	}
+
+	minRight = rightChildren[0]->getMin();
+	maxRight = rightChildren[0]->getMax();
+
+	for (int i = 0; i < rightChildren.size(); i++) {
+		tempMin = rightChildren[i]->getMin();
+		tempMax = rightChildren[i]->getMax();
+
+		if (minRight.x > tempMin.x) minRight.x = tempMin.x;
+		if (minRight.y > tempMin.y) minRight.y = tempMin.y;
+		if (minRight.z > tempMin.z) minRight.z = tempMin.z;
+
+		if (maxRight.x < tempMax.x) maxRight.x = tempMax.x;
+		if (maxRight.y < tempMax.y) maxRight.y = tempMax.y;
+		if (maxRight.z < tempMax.z) maxRight.z = tempMax.z;
+	}
+
 	//Create two child boxes
 	BBox *leftBox = new BBox(minLeft, maxLeft, leftChildren);
 	BBox *rightBox = new BBox(minRight, maxRight, rightChildren);
@@ -515,4 +599,9 @@ void BBox::split(Objects *gl_objects) {
 	gl_objects->push_back(leftBox);
 	gl_objects->push_back(rightBox);
 
+	
+	if(leftChildren.size() > 8) leftBox->split(gl_objects, recurse + 1);
+	if(rightChildren.size() > 8) rightBox->split(gl_objects, recurse + 1);
+	
+	
 }

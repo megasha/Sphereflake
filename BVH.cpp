@@ -7,6 +7,7 @@
 void
 BVH::build(Objects * objs)
 {
+	Objects original = *objs;
 	m_objects = objs;
 
 	Objects BBoxes;
@@ -44,10 +45,11 @@ BVH::build(Objects * objs)
 	}
 
 	mainBox = new BBox(min, max, BBoxes);
-	//m_objects->push_back(mainBox);
+	//mainBox = new BBox(min, max, original);
+	m_objects->push_back(mainBox);
 
 	//Split mainbox
-	mainBox->split(m_objects);
+	mainBox->split(m_objects,0);
 
 	
 }

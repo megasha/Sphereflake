@@ -17,7 +17,7 @@ public:
 	bool intersect(HitInfo& result, const Ray& ray, float tMin = 0.0f, float tMax = MIRO_TMAX);
 	bool bvhIntersect(HitInfo& result, const Ray& ray,
 		float tMin = 0.0f, float tMax = MIRO_TMAX) const;
-	void split(Objects *gl_objects);
+	void split(Objects *gl_objects, unsigned int);
 
 private:
 	bool leaf;
