@@ -18,6 +18,8 @@ public:
 	virtual Vector3 getMin() { return Vector3(0.0f, 0.0f, 0.0f); }
 	virtual Vector3 getMax() { return Vector3(0.0f, 0.0f, 0.0f); }
 	virtual Vector3 getCenter() { return Vector3(0.0f, 0.0f, 0.0f); }
+	virtual void setMin() {}
+	virtual void setMax() {}
 
 
     virtual bool intersect(HitInfo& result, const Ray& ray,

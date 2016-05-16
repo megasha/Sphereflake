@@ -2,6 +2,7 @@
 #include "Ray.h"
 #include <algorithm>
 #include <limits>
+#include <queue>
 
 BBox::BBox(Vector3 cMin, Vector3 cMax, Objects o) :
 min(cMin), max(cMax), complex_objects(o)
@@ -127,7 +128,7 @@ BBox::getCost(unsigned int &lTriangles, unsigned int &rTriangles, Vector3 &lMin,
 	return ret;
 }
 
-void BBox::split(Objects *gl_objects, unsigned int recurse) {
+void BBox::split(Objects *gl_objects, std::queue<BBox*> &splitQueue, unsigned int recurse) {
 	unsigned int numBins = 16;
 	float costX, costY, costZ;
 
@@ -154,6 +155,9 @@ void BBox::split(Objects *gl_objects, unsigned int recurse) {
 		binIndex = (tempCenter[0] - min[0]) / (range[0] / numBins);
 
 		if (binIndex == numBins) binIndex--;
+		if ((tempCenter[0] - min[0]) < 0) binIndex = 0;
+		else if (binIndex > numBins) binIndex = numBins - 1;
+
 
 		binX[binIndex].push_back(complex_objects[i]);
 	}
@@ -166,6 +170,8 @@ void BBox::split(Objects *gl_objects, unsigned int recurse) {
 		binIndex = (tempCenter[1] - min[1]) / (range[1] / numBins);
 
 		if (binIndex == numBins) binIndex--;
+		if ((tempCenter[1] - min[1]) < 0) binIndex = 0;
+		else if (binIndex > numBins) binIndex = numBins - 1;
 
 		binY[binIndex].push_back(complex_objects[i]);
 	}
@@ -178,6 +184,9 @@ void BBox::split(Objects *gl_objects, unsigned int recurse) {
 		binIndex = (tempCenter[2] - min[2]) / (range[2] / numBins);
 
 		if (binIndex == numBins) binIndex--;
+		if ((tempCenter[2] - min[2]) < 0) binIndex = 0;
+		else if (binIndex > numBins) binIndex = numBins - 1;
+
 
 		binZ[binIndex].push_back(complex_objects[i]);
 	}
@@ -397,11 +406,13 @@ void BBox::split(Objects *gl_objects, unsigned int recurse) {
 	*/
 	
 	leaf = false;
-	if (leftChildren.size() > 8) {
-		leftBox->split(gl_objects, recurse + 1);
+	if (leftChildren.size() > 10) {
+		//leftBox->split(gl_objects, recurse + 1);
+		splitQueue.push(leftBox);
 	}
-	if (rightChildren.size() > 8) {
-		rightBox->split(gl_objects, recurse + 1);
+	if (rightChildren.size() > 10) {
+		//rightBox->split(gl_objects, recurse + 1);
+		splitQueue.push(rightBox);
 	}
 	
 	

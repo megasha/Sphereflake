@@ -2,6 +2,7 @@
 #define CSE168_BBOX_H_INCLUDED
 
 #include "Object.h"
+#include <queue>
 
 class BBox : public Object
 {
@@ -16,9 +17,10 @@ public:
 	virtual void renderGL();
 	bool isLeaf() { return leaf; }
 	bool intersect(HitInfo& result, const Ray& ray, float tMin = 0.0f, float tMax = MIRO_TMAX);
+	int getNumChildren() { return complex_objects.size(); }
 	bool bvhIntersect(HitInfo& result, const Ray& ray,
 		float tMin = 0.0f, float tMax = MIRO_TMAX);
-	void split(Objects *gl_objects, unsigned int);
+	void split(Objects *gl_objects, std::queue<BBox*> &splitQueue, unsigned int);
 	BBox *leftBox, *rightBox;
 
 protected:

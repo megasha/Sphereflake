@@ -16,8 +16,12 @@ public:
     void setIndex(unsigned int i) {m_index = i;}
     void setMesh(TriangleMesh* m) {m_mesh = m;}
 
+	 
 	virtual Vector3 getMin();
 	virtual Vector3 getMax();
+	virtual void setMin() { min = getMin(); }
+	virtual void setMax() { max = getMax(); }
+
 	virtual Vector3 getCenter();
 
     virtual void renderGL();
@@ -25,6 +29,7 @@ public:
                            float tMin = 0.0f, float tMax = MIRO_TMAX);
     
 protected:
+	Vector3 min, max;
     TriangleMesh* m_mesh;
     unsigned int m_index;
 };

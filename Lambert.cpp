@@ -88,17 +88,19 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
 		shadow_ray.o = hit.P;
 		shadow_ray.d = l;
 		HitInfo shadow_hit;
-		/*
+		
+		
 		if (scene.trace(shadow_hit, shadow_ray, 0.001f, sqrt(falloff))){}
 		else {
 			L += std::max(0.0f, irradiance) * result;
 			L += m_ks * pHighlight*std::max(0.0f, irradiance);
 		}
-		*/
-
+		
+		
+		/*
 		L += std::max(0.0f, irradiance) * result;
 		L += m_ks * pHighlight*std::max(0.0f, irradiance);
-
+		*/
     }
 
 	//Specular reflection

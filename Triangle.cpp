@@ -6,7 +6,6 @@
 Triangle::Triangle(TriangleMesh * m, unsigned int i) :
     m_mesh(m), m_index(i)
 {
-
 }
 
 

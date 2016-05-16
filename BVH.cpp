@@ -4,10 +4,18 @@
 #include "BBox.h"
 #include <algorithm>
 #include <vector>
+#include <queue>
+#include <ctime>
 
 void
 BVH::build(Objects * objs)
 {
+	std::cout << "\nInitializing BVH" << std::endl;
+	std::clock_t start;
+	double duration;
+
+	start = std::clock();
+
 	Objects original = *objs;
 	m_objects = objs;
 
@@ -16,6 +24,8 @@ BVH::build(Objects * objs)
 	//Put bounding box over all primatives
 	for (size_t i = 0; i < objs->size(); ++i) {
 		BBox aBox((*objs)[i]->getMin(), (*objs)[i]->getMax(), (*objs)[i]);
+		(*objs)[i]->setMin(); //for debug purposes
+		(*objs)[i]->setMax(); //for debug purposes
 		BBoxes.push_back(aBox);
 	}
 	
@@ -50,8 +60,21 @@ BVH::build(Objects * objs)
 	m_objects->push_back(mainBox);
 
 	//Split mainbox
-	mainBox->split(m_objects,0);
+	std::queue<BBox*> splitQueue;
+	mainBox->split(m_objects,splitQueue, 0);
+	
+	while (!splitQueue.empty()) {
+		BBox *currBox = splitQueue.front();
+		std::cout << "Num children: " << currBox->getNumChildren() << std::endl;
+		currBox->split(m_objects, splitQueue, 0);
+		splitQueue.pop();
+	}
 
+	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+
+	std::cout << "BVH Complete" << std::endl;
+	std::cout << "BVH Duration: " << duration << " seconds\n" << std::endl;
+	
 	
 }
 

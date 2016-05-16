@@ -74,7 +74,7 @@ Scene::raytraceImage(Camera *cam, Image *img)
     debug("done Raytracing!\n");
 
 	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-	std::cout << "Duration: " << duration << " seconds" << std::endl;
+	std::cout << "\nRendering Duration: " << duration << " seconds" << std::endl;
 }
 
 bool
