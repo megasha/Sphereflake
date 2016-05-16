@@ -2,6 +2,7 @@
 #include "Ray.h"
 #include "Console.h"
 #include "BBox.h"
+#include <algorithm>
 #include <vector>
 
 void
@@ -10,11 +11,11 @@ BVH::build(Objects * objs)
 	Objects original = *objs;
 	m_objects = objs;
 
-	Objects BBoxes;
+	std::vector<BBox> BBoxes;
 
 	//Put bounding box over all primatives
 	for (size_t i = 0; i < objs->size(); ++i) {
-		BBox *aBox = new BBox((*objs)[i]->getMin(), (*objs)[i]->getMax(), (*objs)[i], true);
+		BBox aBox((*objs)[i]->getMin(), (*objs)[i]->getMax(), (*objs)[i]);
 		BBoxes.push_back(aBox);
 	}
 	
@@ -25,27 +26,27 @@ BVH::build(Objects * objs)
 
 	//Calculate main box
 	Vector3 min, max;
-	min = BBoxes[0]->getMin();
-	max = BBoxes[0]->getMax();
+	min = BBoxes[0].getMin();
+	max = BBoxes[0].getMax();
 
 	Vector3 tempMin;
 	Vector3 tempMax;
 	for (int i = 0; i < BBoxes.size(); i++)
 	{
-		tempMin = BBoxes[i]->getMin();
-		tempMax = BBoxes[i]->getMax();
+		tempMin = BBoxes[i].getMin();
+		tempMax = BBoxes[i].getMax();
 
-		if (min.x > tempMin.x) min.x = tempMin.x;
-		if (min.y > tempMin.y) min.y = tempMin.y;
-		if (min.z > tempMin.z) min.z = tempMin.z;
+		min.x = std::min(tempMin.x,min.x);
+		min.y = std::min(tempMin.y,min.y);
+		min.z = std::min(tempMin.z,min.z);
 
-		if (max.x < tempMax.x) max.x = tempMax.x;
-		if (max.y < tempMax.y) max.y = tempMax.y;
-		if (max.z < tempMax.z) max.z = tempMax.z;
+		max.x = std::max(tempMax.x,max.x);
+		max.y = std::max(tempMax.y,max.y);
+		max.z = std::max(tempMax.z,max.z);
 	}
 
-	mainBox = new BBox(min, max, BBoxes);
-	//mainBox = new BBox(min, max, original);
+	//mainBox = new BBox(min, max, BBoxes);
+	mainBox = new BBox(min, max, original);
 	m_objects->push_back(mainBox);
 
 	//Split mainbox
@@ -61,19 +62,29 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
     // Here you would need to traverse the BVH to perform ray-intersection
     // acceleration. For now we just intersect every object.
 
+	
     bool hit = false;
     HitInfo tempMinHit;
     minHit.t = MIRO_TMAX;
 
+	if (mainBox->bvhIntersect(tempMinHit, ray, tMin, tMax)) {
+		hit = true;
+		if (tempMinHit.t < minHit.t)
+			minHit = tempMinHit;
+	}
+
+	/*
 	if (mainBox->intersect(tempMinHit, ray, tMin, tMax)){
 		if (mainBox->isLeaf()){
 			hit = mainBox->bvhIntersect(tempMinHit, ray, tempMinHit.t, tMax);
 			minHit = tempMinHit;
 		}
 		else {
+			mainBox->leftBox->bvhIntersect(tempMinHit, ray, tMin, tMax);
 
 		}
 	}
+	*/
     
     return hit;
 }

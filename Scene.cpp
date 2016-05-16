@@ -3,6 +3,7 @@
 #include "Camera.h"
 #include "Image.h"
 #include "Console.h"
+#include <ctime>
 
 Scene * g_scene = 0;
 
@@ -48,7 +49,10 @@ Scene::raytraceImage(Camera *cam, Image *img)
     
     // loop over all pixels in the image
 
-	
+	std::clock_t start;
+	double duration;
+	start = std::clock();
+
     for (int j = 0; j < img->height(); ++j)
     {
         for (int i = 0; i < img->width(); ++i)
@@ -68,6 +72,9 @@ Scene::raytraceImage(Camera *cam, Image *img)
     
     printf("Rendering Progress: 100.000%\n");
     debug("done Raytracing!\n");
+
+	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+	std::cout << "Duration: " << duration << " seconds" << std::endl;
 }
 
 bool

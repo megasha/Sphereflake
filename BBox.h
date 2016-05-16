@@ -7,23 +7,29 @@ class BBox : public Object
 {
 public:
 	BBox(Vector3 cMin, Vector3 cMax, Objects o);
-	BBox(Vector3 cMin, Vector3 cMax, Object *o, bool b);
+	BBox(Vector3 cMin, Vector3 cMax, Object *o);
 	~BBox();
 	Vector3 getMin() { return min; }
 	Vector3 getMax() { return max; }
+	Objects getObjects() { return complex_objects; }
 	virtual Vector3 getCenter() { return ((max - min) / 2.0f) + min; }
 	virtual void renderGL();
 	bool isLeaf() { return leaf; }
 	bool intersect(HitInfo& result, const Ray& ray, float tMin = 0.0f, float tMax = MIRO_TMAX);
 	bool bvhIntersect(HitInfo& result, const Ray& ray,
-		float tMin = 0.0f, float tMax = MIRO_TMAX) const;
+		float tMin = 0.0f, float tMax = MIRO_TMAX);
 	void split(Objects *gl_objects, unsigned int);
+	BBox *leftBox, *rightBox;
+
+protected:
+	Objects complex_objects;
 
 private:
 	bool leaf;
 	Vector3 min;
 	Vector3 max;
-	Objects complex_objects;
+	void getBBox(Objects o, Vector3 &min, Vector3 &max);
+	float getCost(unsigned int &lTriangles, unsigned int &rTriangles, Vector3 &lMin, Vector3 &lMax, Vector3 &rMin, Vector3 &rMax);
 };
 
 #endif

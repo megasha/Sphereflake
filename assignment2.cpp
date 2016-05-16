@@ -44,9 +44,12 @@ makeTeapotScene()
 	g_scene->addLight(light);
 
 	Material* material = new Lambert(Vector3(1.0f));
+	
+	
 	TriangleMesh * teapot = new TriangleMesh;
 	teapot->load("models/teapot.obj");
 	addMeshTrianglesToScene(teapot, material);
+	
 
 	// create the floor triangle
 	TriangleMesh * floor = new TriangleMesh;
@@ -58,10 +61,12 @@ makeTeapotScene()
 	floor->setN2(Vector3(0, 1, 0));
 	floor->setN3(Vector3(0, 1, 0));
 
+	Material* matFloor = new Lambert(Vector3(1.0f, 0.0f, 0.0f));
+
 	Triangle* t = new Triangle;
 	t->setIndex(0);
 	t->setMesh(floor);
-	t->setMaterial(material);
+	t->setMaterial(matFloor);
 	g_scene->addObject(t);
 
 	// let objects do pre-calculations if needed
@@ -126,7 +131,7 @@ makeBunny20Scene()
 	g_scene = new Scene;
 	g_image = new Image;
 
-	g_image->resize(128, 128);
+	g_image->resize(512, 512);
 
 	// set up the camera
 	g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));

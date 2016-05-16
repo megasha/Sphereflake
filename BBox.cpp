@@ -1,16 +1,18 @@
 #include "BBox.h"
 #include "Ray.h"
 #include <algorithm>
+#include <limits>
 
 BBox::BBox(Vector3 cMin, Vector3 cMax, Objects o) :
 min(cMin), max(cMax), complex_objects(o)
 {
-	leaf = false;
+	leaf = true;;
 }
 
-BBox::BBox(Vector3 cMin, Vector3 cMax, Object *o, bool b) :
-min(cMin), max(cMax), leaf(b)
+BBox::BBox(Vector3 cMin, Vector3 cMax, Object *o) :
+min(cMin), max(cMax)
 {
+	leaf = true;
 	complex_objects.push_back(o);
 }
 
@@ -108,24 +110,21 @@ BBox::getCenter(){
 }
 */
 
-bool
-BBox::bvhIntersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
-{
-	bool hit = false;
-	HitInfo tempMinHit;
-	minHit.t = MIRO_TMAX;
+float
+BBox::getCost(unsigned int &lTriangles, unsigned int &rTriangles, Vector3 &lMin, Vector3 &lMax, Vector3 &rMin, Vector3 &rMax){
+	float ret = 0;
 
-	for (size_t i = 0; i < complex_objects.size(); ++i)
-	{
-		if (complex_objects[i]->intersect(tempMinHit, ray, tMin, tMax))
-		{
-			hit = true;
-			if (tempMinHit.t < minHit.t)
-				minHit = tempMinHit;
-		}
-	}
+	Vector3 lRange = lMax - lMin;
+	lRange = Vector3(abs(lRange[0]), abs(lRange[1]), abs(lRange[2]));
 
-	return hit;
+	Vector3 rRange = rMax - rMin;
+	rRange = Vector3(abs(rRange[0]), abs(rRange[1]), abs(rRange[2]));
+
+	float saLeft = 2 * ((lRange[0] * lRange[1]) + (lRange[1] * lRange[2]) + (lRange[0] * lRange[2]));
+	float saRight = 2 * ((rRange[0] * rRange[1]) + (rRange[1] * rRange[2]) + (rRange[0] * rRange[2]));
+
+	ret = (saLeft * lTriangles) + (saRight * rTriangles);
+	return ret;
 }
 
 void BBox::split(Objects *gl_objects, unsigned int recurse) {
@@ -184,103 +183,137 @@ void BBox::split(Objects *gl_objects, unsigned int recurse) {
 	}
 
 	//Compute cost of X
+	Objects leftObjects;
+	Objects rightObjects;
 	unsigned int leftTriangles = 0;
 	unsigned int rightTriangles = 0;
 	unsigned int splitX = 0;
 	float binSizeX = range[0] / numBins;
 	float tempCostX = 0;
 
+	Vector3 leftMin, leftMax, rightMin, rightMax;
 
 	//X: Initial cost setup
-	leftTriangles = binX[0].size();
-	for (int i = 1; i < numBins; i++)
-		rightTriangles += binX[i].size();
-
-	costX = (leftTriangles * binSizeX) + (rightTriangles * binSizeX*(numBins - 1));
+	costX = std::numeric_limits<float>::max();
 	splitX = 0;
 	rightTriangles = 0;
 
 	//X: Recursive cost setup
-	for (int i = 1; i < numBins-1; i++) {
+	leftObjects.clear();
+	rightObjects.clear();
+	for (int i = 0; i < numBins-1; i++) {
 
 		leftTriangles += binX[i].size();
+		for (int j = 0; j < binX[i].size(); j++)
+			leftObjects.push_back(binX[i][j]);
 
 		for (int j = i+1; j < numBins; j++) {
 			rightTriangles += binX[j].size();
+			for (int k = 0; k < binX[j].size(); k++)
+				rightObjects.push_back(binX[j][k]);
 		}
 
-		tempCostX = (leftTriangles * binSizeX*(i + 1)) + (rightTriangles * binSizeX*(numBins - i - 1));
+		getBBox(leftObjects, leftMin, leftMax);
+		getBBox(rightObjects, rightMin, rightMax);
+		tempCostX = getCost(leftTriangles, rightTriangles, leftMin, leftMax, rightMin, rightMax);
 
-		if (tempCostX < costX) {
+		if (tempCostX < costX && leftObjects.size() !=0 && rightObjects.size() !=0) {
 			costX = tempCostX;
 			splitX = i;
 		}
 
 		rightTriangles = 0;
+		rightObjects.clear();
 	}
 
+	leftObjects.clear();
+	rightObjects.clear();
 	leftTriangles = 0;
 	rightTriangles = 0;
 	unsigned int splitY = 0;
 	float binSizeY = range[1] / numBins;
 	float tempCostY = 0;
+	leftMin = Vector3(0.0f);
+	leftMax = Vector3(0.0f);
+	rightMin = Vector3(0.0f);
+	rightMax = Vector3(0.0f);
 
 	//Y: Initial cost setup
-	leftTriangles = binY[0].size();
-	for (int i = 1; i < numBins; i++)
-		rightTriangles += binY[i].size();
-
-	costY = (leftTriangles * binSizeY) + (rightTriangles* binSizeY *(numBins - 1));
+	costY = std::numeric_limits<float>::max();
 	splitY = 0;
 	rightTriangles = 0;
 
-	//Y: Recrusive cost setup
-	for (int i = 1; i < numBins - 1; i++) {
+	//Y: Recursive cost setup
+	leftObjects.clear();
+	rightObjects.clear();
+	for (int i = 0; i < numBins - 1; i++) {
+
 		leftTriangles += binY[i].size();
+		for (int j = 0; j < binY[i].size(); j++)
+			leftObjects.push_back(binY[i][j]);
 
 		for (int j = i + 1; j < numBins; j++) {
 			rightTriangles += binY[j].size();
+			for (int k = 0; k < binY[j].size(); k++)
+				rightObjects.push_back(binY[j][k]);
 		}
 
-		tempCostY = (leftTriangles * binSizeY*(i + 1)) + (rightTriangles * binSizeY*(numBins - i - 1));
+		getBBox(leftObjects, leftMin, leftMax);
+		getBBox(rightObjects, rightMin, rightMax);
+		tempCostY = getCost(leftTriangles, rightTriangles, leftMin, leftMax, rightMin, rightMax);
 
-		if (tempCostY < costY) {
+		if (tempCostY < costY && leftObjects.size() != 0 && rightObjects.size() != 0) {
 			costY = tempCostY;
 			splitY = i;
 		}
+
 		rightTriangles = 0;
+		rightObjects.clear();
 	}
 
+	leftObjects.clear();
+	rightObjects.clear();
 	leftTriangles = 0;
 	rightTriangles = 0;
 	unsigned int splitZ = 0;
 	float binSizeZ = range[2] / numBins;
 	float tempCostZ = 0;
+	leftMin = Vector3(0.0f);
+	leftMax = Vector3(0.0f);
+	rightMin = Vector3(0.0f);
+	rightMax = Vector3(0.0f);
 
 	//Z: Initial cost setup
-	leftTriangles = binZ[0].size();
-	for (int i = 1; i < numBins; i++)
-		rightTriangles += binZ[i].size();
-
-	costZ = (leftTriangles * binSizeZ) + (rightTriangles* binSizeZ *(numBins - 1));
+	costZ = std::numeric_limits<float>::max();
 	splitZ = 0;
 	rightTriangles = 0;
 
-	//Z: Recrusive cost setup
-	for (int i = 1; i < numBins - 1; i++) {
+	//Z: Recursive cost setup
+	leftObjects.clear();
+	rightObjects.clear();
+	for (int i = 0; i < numBins - 1; i++) {
+
 		leftTriangles += binZ[i].size();
+		for (int j = 0; j < binZ[i].size(); j++)
+			leftObjects.push_back(binZ[i][j]);
 
 		for (int j = i + 1; j < numBins; j++) {
 			rightTriangles += binZ[j].size();
+			for (int k = 0; k < binZ[j].size(); k++)
+				rightObjects.push_back(binZ[j][k]);
 		}
 
-		tempCostZ = (leftTriangles * binSizeZ*(i + 1)) + (rightTriangles * binSizeZ*(numBins - i - 1));
+		getBBox(leftObjects, leftMin, leftMax);
+		getBBox(rightObjects, rightMin, rightMax);
+		tempCostZ = getCost(leftTriangles, rightTriangles, leftMin, leftMax, rightMin, rightMax);
 
-		if (tempCostZ < costZ) {
+		if (tempCostZ < costZ && leftObjects.size() != 0 && rightObjects.size() != 0) {
 			costZ = tempCostZ;
 			splitZ = i;
 		}
+
 		rightTriangles = 0;
+		rightObjects.clear();
 	}
 
 	
@@ -291,238 +324,16 @@ void BBox::split(Objects *gl_objects, unsigned int recurse) {
 		cost = costY;
 		axisCost = 1;
 	}
-	else if (costZ < cost) {
+
+	if (costZ < cost) {
 		cost = costZ;
 		axisCost = 2;
 	}
 
-	unsigned int leftMin = numBins + 1;
-	unsigned int leftMax = numBins + 1;
-	unsigned int rightMin = numBins + 1;
-	unsigned int rightMax = numBins + 1;
-
-	if (axisCost == 0) {
-		for (int i = 0; i < splitX; i++)
-			if (!binX[i].empty()) {
-				leftMin = i; 
-				break;
-			}
-
-		for (int i = splitX; i >= 0; i--) 
-			if (!binX[i].empty()) {
-				leftMax = i; 
-				break;
-			}
-
-		for (int i = splitX + 1; i < numBins; i++)
-			if (!binX[i].empty()) {
-				rightMin = i;
-				break;
-			}
-
-		for (int i = numBins - 1; i >= splitX + 1;i--)
-			if (!binX[i].empty()) {
-				rightMax = i;
-				break;
-			}
-	}
-
-	else if (axisCost == 1) {
-		for (int i = 0; i < splitY; i++)
-			if (!binY[i].empty()) {
-				leftMin = i;
-				break;
-			}
-
-		for (int i = splitY; i >= 0; i--)
-			if (!binY[i].empty()) {
-				leftMax = i;
-				break;
-			}
-
-		for (int i = splitY + 1; i < numBins; i++)
-			if (!binY[i].empty()) {
-				rightMin = i;
-				break;
-			}
-
-		for (int i = numBins - 1; i >= splitY + 1; i--)
-			if (!binY[i].empty()) {
-				rightMax = i;
-				break;
-			}
-	}
-
-	else {
-		for (int i = 0; i < splitZ; i++)
-			if (!binZ[i].empty()) {
-				leftMin = i;
-				break;
-			}
-
-		for (int i = splitZ; i >= 0; i--)
-			if (!binZ[i].empty()) {
-				leftMax = i;
-				break;
-			}
-
-		for (int i = splitZ + 1; i < numBins; i++)
-			if (!binZ[i].empty()) {
-				rightMin = i;
-				break;
-			}
-
-		for (int i = numBins - 1; i >= splitZ + 1; i--)
-			if (!binZ[i].empty()) {
-				rightMax = i;
-				break;
-			}
-	}
-
-	/*
-	Vector3 minLeft, minRight, maxLeft, maxRight;
-
-	if (axisCost == 0) {
-		minLeft = binX[leftMin][0]->getMin();
-		maxLeft = binX[leftMax][0]->getMax();
-		minRight = binX[rightMin][0]->getMin();
-		maxRight = binX[rightMax][0]->getMax();
-
-		for (int i = 0; i < binX[leftMin].size(); i++) {
-			if (minLeft.x > binX[leftMin][i]->getMin().x)  minLeft.x = binX[leftMin][i]->getMin().x;
-			if (minLeft.y > binX[leftMin][i]->getMin().y)  minLeft.y = binX[leftMin][i]->getMin().y;
-			if (minLeft.z > binX[leftMin][i]->getMin().z)  minLeft.z = binX[leftMin][i]->getMin().z;
-
-			if (maxLeft.x < binX[leftMin][i]->getMax().x)  maxLeft.x = binX[leftMin][i]->getMax().x;
-			if (maxLeft.y < binX[leftMin][i]->getMax().y)  maxLeft.y = binX[leftMin][i]->getMax().y;
-			if (maxLeft.z < binX[leftMin][i]->getMax().z)  maxLeft.z = binX[leftMin][i]->getMax().z;
-		}
-		for (int i = 0; i < binX[leftMax].size(); i++) {
-			if (maxLeft.x < binX[leftMax][i]->getMax().x)  maxLeft.x = binX[leftMax][i]->getMax().x;
-			if (maxLeft.y < binX[leftMax][i]->getMax().y)  maxLeft.y = binX[leftMax][i]->getMax().y;
-			if (maxLeft.z < binX[leftMax][i]->getMax().z)  maxLeft.z = binX[leftMax][i]->getMax().z;
-
-			if (minLeft.x > binX[leftMax][i]->getMin().x)  minLeft.x = binX[leftMax][i]->getMin().x;
-			if (minLeft.y > binX[leftMax][i]->getMin().y)  minLeft.y = binX[leftMax][i]->getMin().y;
-			if (minLeft.z > binX[leftMax][i]->getMin().z)  minLeft.z = binX[leftMax][i]->getMin().z;
-		}
-
-		for (int i = 0; i < binX[rightMin].size(); i++) {
-			if (minRight.x > binX[rightMin][i]->getMin().x)  minRight.x = binX[rightMin][i]->getMin().x;
-			if (minRight.y > binX[rightMin][i]->getMin().y)  minRight.y = binX[rightMin][i]->getMin().y;
-			if (minRight.z > binX[rightMin][i]->getMin().z)  minRight.z = binX[rightMin][i]->getMin().z;
-
-			if (maxRight.x < binX[rightMin][i]->getMax().x)  maxRight.x = binX[rightMin][i]->getMax().x;
-			if (maxRight.y < binX[rightMin][i]->getMax().y)  maxRight.y = binX[rightMin][i]->getMax().y;
-			if (maxRight.z < binX[rightMin][i]->getMax().z)  maxRight.z = binX[rightMin][i]->getMax().z;
-		}
-		for (int i = 0; i < binX[rightMax].size(); i++) {
-			if (maxRight.x < binX[rightMax][i]->getMax().x)  maxRight.x = binX[rightMax][i]->getMax().x;
-			if (maxRight.y < binX[rightMax][i]->getMax().y)  maxRight.y = binX[rightMax][i]->getMax().y;
-			if (maxRight.z < binX[rightMax][i]->getMax().z)  maxRight.z = binX[rightMax][i]->getMax().z;
-
-			if (minRight.x > binX[rightMax][i]->getMin().x)  minRight.x = binX[rightMax][i]->getMin().x;
-			if (minRight.y > binX[rightMax][i]->getMin().y)  minRight.y = binX[rightMax][i]->getMin().y;
-			if (minRight.z > binX[rightMax][i]->getMin().z)  minRight.z = binX[rightMax][i]->getMin().z;
-		}
-	}
-
-	else if (axisCost == 1) {
-		minLeft = binY[leftMin][0]->getMin();
-		maxLeft = binY[leftMax][0]->getMax();
-		minRight = binY[rightMin][0]->getMin();
-		maxRight = binY[rightMax][0]->getMax();
-
-		for (int i = 0; i < binY[leftMin].size(); i++) {
-			if (minLeft.x > binY[leftMin][i]->getMin().x)  minLeft.x = binY[leftMin][i]->getMin().x;
-			if (minLeft.y > binY[leftMin][i]->getMin().y)  minLeft.y = binY[leftMin][i]->getMin().y;
-			if (minLeft.z > binY[leftMin][i]->getMin().z)  minLeft.z = binY[leftMin][i]->getMin().z;
-			
-			if (maxLeft.x < binY[leftMin][i]->getMax().x)  maxLeft.x = binY[leftMin][i]->getMax().x;
-			if (maxLeft.y < binY[leftMin][i]->getMax().y)  maxLeft.y = binY[leftMin][i]->getMax().y;
-			if (maxLeft.z < binY[leftMin][i]->getMax().z)  maxLeft.z = binY[leftMin][i]->getMax().z;
-
-		}
-		for (int i = 0; i < binY[leftMax].size(); i++) {
-			if (maxLeft.x < binY[leftMax][i]->getMax().x)  maxLeft.x = binY[leftMax][i]->getMax().x;
-			if (maxLeft.y < binY[leftMax][i]->getMax().y)  maxLeft.y = binY[leftMax][i]->getMax().y;
-			if (maxLeft.z < binY[leftMax][i]->getMax().z)  maxLeft.z = binY[leftMax][i]->getMax().z;
-			
-			if (minLeft.x > binY[leftMax][i]->getMin().x)  minLeft.x = binY[leftMax][i]->getMin().x;
-			if (minLeft.y > binY[leftMax][i]->getMin().y)  minLeft.y = binY[leftMax][i]->getMin().y;
-			if (minLeft.z > binY[leftMax][i]->getMin().z)  minLeft.z = binY[leftMax][i]->getMin().z;
-		}
-
-		for (int i = 0; i < binY[rightMin].size(); i++) {
-			if (minRight.x > binY[rightMin][i]->getMin().x)  minRight.x = binY[rightMin][i]->getMin().x;
-			if (minRight.y > binY[rightMin][i]->getMin().y)  minRight.y = binY[rightMin][i]->getMin().y;
-			if (minRight.z > binY[rightMin][i]->getMin().z)  minRight.z = binY[rightMin][i]->getMin().z;
-			
-			if (maxRight.x < binY[rightMin][i]->getMax().x)  maxRight.x = binY[rightMin][i]->getMax().x;
-			if (maxRight.y < binY[rightMin][i]->getMax().y)  maxRight.y = binY[rightMin][i]->getMax().y;
-			if (maxRight.z < binY[rightMin][i]->getMax().z)  maxRight.z = binY[rightMin][i]->getMax().z;
-		}
-		for (int i = 0; i < binY[rightMax].size(); i++) {
-			if (maxRight.x < binY[rightMax][i]->getMax().x)  maxRight.x = binY[rightMax][i]->getMax().x;
-			if (maxRight.y < binY[rightMax][i]->getMax().y)  maxRight.y = binY[rightMax][i]->getMax().y;
-			if (maxRight.z < binY[rightMax][i]->getMax().z)  maxRight.z = binY[rightMax][i]->getMax().z;
-			
-			if (minRight.x > binY[rightMax][i]->getMin().x)  minRight.x = binY[rightMax][i]->getMin().x;
-			if (minRight.y > binY[rightMax][i]->getMin().y)  minRight.y = binY[rightMax][i]->getMin().y;
-			if (minRight.z > binY[rightMax][i]->getMin().z)  minRight.z = binY[rightMax][i]->getMin().z;
-		}
-	}
-
-	else {
-		minLeft = binZ[leftMin][0]->getMin();
-		maxLeft = binZ[leftMax][0]->getMax();
-		minRight = binZ[rightMin][0]->getMin();
-		maxRight = binZ[rightMax][0]->getMax();
-
-		for (int i = 0; i < binZ[leftMin].size(); i++) {
-			if (minLeft.x > binZ[leftMin][i]->getMin().x)  minLeft.x = binZ[leftMin][i]->getMin().x;
-			if (minLeft.y > binZ[leftMin][i]->getMin().y)  minLeft.y = binZ[leftMin][i]->getMin().y;
-			if (minLeft.z > binZ[leftMin][i]->getMin().z)  minLeft.z = binZ[leftMin][i]->getMin().z;
-
-			if (maxLeft.x < binZ[leftMin][i]->getMax().x)  maxLeft.x = binZ[leftMin][i]->getMax().x;
-			if (maxLeft.y < binZ[leftMin][i]->getMax().y)  maxLeft.y = binZ[leftMin][i]->getMax().y;
-			if (maxLeft.z < binZ[leftMin][i]->getMax().z)  maxLeft.z = binZ[leftMin][i]->getMax().z;
-		}
-		for (int i = 0; i < binZ[leftMax].size(); i++) {
-			if (maxLeft.x < binZ[leftMax][i]->getMax().x)  maxLeft.x = binZ[leftMax][i]->getMax().x;
-			if (maxLeft.y < binZ[leftMax][i]->getMax().y)  maxLeft.y = binZ[leftMax][i]->getMax().y;
-			if (maxLeft.z < binZ[leftMax][i]->getMax().z)  maxLeft.z = binZ[leftMax][i]->getMax().z;
-
-			if (minLeft.x > binZ[leftMax][i]->getMin().x)  minLeft.x = binZ[leftMax][i]->getMin().x;
-			if (minLeft.y > binZ[leftMax][i]->getMin().y)  minLeft.y = binZ[leftMax][i]->getMin().y;
-			if (minLeft.z > binZ[leftMax][i]->getMin().z)  minLeft.z = binZ[leftMax][i]->getMin().z;
-		}
-
-		for (int i = 0; i < binZ[rightMin].size(); i++) {
-			if (minRight.x > binZ[rightMin][i]->getMin().x)  minRight.x = binZ[rightMin][i]->getMin().x;
-			if (minRight.y > binZ[rightMin][i]->getMin().y)  minRight.y = binZ[rightMin][i]->getMin().y;
-			if (minRight.z > binZ[rightMin][i]->getMin().z)  minRight.z = binZ[rightMin][i]->getMin().z;
-
-			if (maxRight.x < binZ[rightMin][i]->getMax().x)  maxRight.x = binZ[rightMin][i]->getMax().x;
-			if (maxRight.y < binZ[rightMin][i]->getMax().y)  maxRight.y = binZ[rightMin][i]->getMax().y;
-			if (maxRight.z < binZ[rightMin][i]->getMax().z)  maxRight.z = binZ[rightMin][i]->getMax().z;
-		}
-		for (int i = 0; i < binZ[rightMax].size(); i++) {
-			if (maxRight.x < binZ[rightMax][i]->getMax().x)  maxRight.x = binZ[rightMax][i]->getMax().x;
-			if (maxRight.y < binZ[rightMax][i]->getMax().y)  maxRight.y = binZ[rightMax][i]->getMax().y;
-			if (maxRight.z < binZ[rightMax][i]->getMax().z)  maxRight.z = binZ[rightMax][i]->getMax().z;
-
-			if (minRight.x > binZ[rightMax][i]->getMin().x)  minRight.x = binZ[rightMax][i]->getMin().x;
-			if (minRight.y > binZ[rightMax][i]->getMin().y)  minRight.y = binZ[rightMax][i]->getMin().y;
-			if (minRight.z > binZ[rightMax][i]->getMin().z)  minRight.z = binZ[rightMax][i]->getMin().z;
-		}
-	}
-	*/
-
 	//Populate left and right leaf boxes
 	Objects leftChildren, rightChildren;
 	if (axisCost == 0) {
-		for (int i = 0; i < splitX; i++) {
+		for (int i = 0; i < splitX+1; i++) {
 			for (int j = 0; j < binX[i].size(); j++) {
 				leftChildren.push_back(binX[i][j]);
 			}
@@ -534,7 +345,7 @@ void BBox::split(Objects *gl_objects, unsigned int recurse) {
 		}
 	}
 	else if (axisCost == 1) {
-		for (int i = 0; i < splitY; i++) {
+		for (int i = 0; i < splitY+1; i++) {
 			for (int j = 0; j < binY[i].size(); j++) {
 				leftChildren.push_back(binY[i][j]);
 			}
@@ -546,7 +357,7 @@ void BBox::split(Objects *gl_objects, unsigned int recurse) {
 		}
 	}
 	else {
-		for (int i = 0; i < splitZ; i++) {
+		for (int i = 0; i < splitZ+1; i++) {
 			for (int j = 0; j < binZ[i].size(); j++) {
 				leftChildren.push_back(binZ[i][j]);
 			}
@@ -560,48 +371,123 @@ void BBox::split(Objects *gl_objects, unsigned int recurse) {
 
 	Vector3 minLeft, minRight, maxLeft, maxRight;
 	Vector3 tempMin, tempMax;
-	minLeft = leftChildren[0]->getMin();
-	maxLeft = leftChildren[0]->getMax();
-
-	for (int i = 0; i < leftChildren.size(); i++) {
-		tempMin = leftChildren[i]->getMin();
-		tempMax = leftChildren[i]->getMax();
-
-		if (minLeft.x > tempMin.x) minLeft.x = tempMin.x;
-		if (minLeft.y > tempMin.y) minLeft.y = tempMin.y;
-		if (minLeft.z > tempMin.z) minLeft.z = tempMin.z;
-
-		if (maxLeft.x < tempMax.x) maxLeft.x = tempMax.x;
-		if (maxLeft.y < tempMax.y) maxLeft.y = tempMax.y;
-		if (maxLeft.z < tempMax.z) maxLeft.z = tempMax.z;
-	}
-
-	minRight = rightChildren[0]->getMin();
-	maxRight = rightChildren[0]->getMax();
-
-	for (int i = 0; i < rightChildren.size(); i++) {
-		tempMin = rightChildren[i]->getMin();
-		tempMax = rightChildren[i]->getMax();
-
-		if (minRight.x > tempMin.x) minRight.x = tempMin.x;
-		if (minRight.y > tempMin.y) minRight.y = tempMin.y;
-		if (minRight.z > tempMin.z) minRight.z = tempMin.z;
-
-		if (maxRight.x < tempMax.x) maxRight.x = tempMax.x;
-		if (maxRight.y < tempMax.y) maxRight.y = tempMax.y;
-		if (maxRight.z < tempMax.z) maxRight.z = tempMax.z;
-	}
+	
+	getBBox(leftChildren, minLeft, maxLeft);
+	getBBox(rightChildren, minRight, maxRight);
 
 	//Create two child boxes
-	BBox *leftBox = new BBox(minLeft, maxLeft, leftChildren);
-	BBox *rightBox = new BBox(minRight, maxRight, rightChildren);
-
+	
+	complex_objects.clear();
+	leftBox = new BBox(minLeft, maxLeft, leftChildren);
+	rightBox = new BBox(minRight, maxRight, rightChildren);
+	
 	gl_objects->push_back(leftBox);
 	gl_objects->push_back(rightBox);
 
+	/*
+	leaf = false;
+	if (recurse < 6) {
+		leaf = false;
+		leftBox->split(gl_objects, recurse + 1);
+	}
+	if (recurse < 6) {
+		leaf = false;
+		rightBox->split(gl_objects, recurse + 1);
+	}
+	*/
 	
-	if(leftChildren.size() > 8) leftBox->split(gl_objects, recurse + 1);
-	if(rightChildren.size() > 8) rightBox->split(gl_objects, recurse + 1);
+	leaf = false;
+	if (leftChildren.size() > 8) {
+		leftBox->split(gl_objects, recurse + 1);
+	}
+	if (rightChildren.size() > 8) {
+		rightBox->split(gl_objects, recurse + 1);
+	}
 	
 	
+	
+	
+}
+
+void
+BBox::getBBox(Objects o, Vector3 &min, Vector3 &max) {
+	if (o.empty()) return;
+	min = o[0]->getMin();
+	max = o[0]->getMax();
+
+	Vector3 tempMin;
+	Vector3 tempMax;
+	for (int i = 0; i < o.size(); i++) {
+		tempMin = o[i]->getMin();
+		tempMax = o[i]->getMax();
+
+		min.x = std::min(tempMin.x,min.x);
+		min.y = std::min(tempMin.y,min.y);
+		min.z = std::min(tempMin.z, min.z);
+
+		max.x = std::max(tempMax.x,max.x);
+		max.y = std::max(tempMax.y,max.y);	
+		max.z = std::max(tempMax.z,max.z);
+	}
+}
+
+bool
+BBox::bvhIntersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax)
+{
+	bool hit = false;
+	HitInfo tempMinHit;
+	minHit.t = MIRO_TMAX;
+
+	if (intersect(tempMinHit, ray, tMin, tMax)) {
+		if (leaf) {
+			for (int i = 0; i < complex_objects.size(); ++i)
+				if (complex_objects[i]->intersect(tempMinHit, ray, tMin, tMax)) {
+					hit = true;
+					if (tempMinHit.t < minHit.t)
+						minHit = tempMinHit;
+				}
+		}
+		else {
+			bool left = false;
+			bool right = false;
+			HitInfo tempMinHitLeft;
+			HitInfo tempMinHitRight;
+
+			left = leftBox->bvhIntersect(tempMinHitLeft, ray, tMin, tMax);
+			right = rightBox->bvhIntersect(tempMinHitRight, ray, tMin, tMax);
+
+			if (left  && right) {
+				hit = true;
+				if (tempMinHitLeft.t < minHit.t)
+					minHit = tempMinHitLeft;
+				if (tempMinHitRight.t < minHit.t)
+					minHit = tempMinHitRight;
+			}
+			else if (left) {
+				hit = true;
+				if (tempMinHitLeft.t < minHit.t)
+					minHit = tempMinHitLeft;
+			}
+			else if (right) {
+				hit = true;
+				if (tempMinHitRight.t < minHit.t)
+					minHit = tempMinHitRight;
+			}
+		}
+	}
+	return hit;
+
+	/*
+	for (size_t i = 0; i < complex_objects.size(); ++i)
+	{
+	if (complex_objects[i]->intersect(tempMinHit, ray, tMin, tMax))
+	{
+	hit = true;
+	if (tempMinHit.t < minHit.t)
+	minHit = tempMinHit;
+	}
+	}
+
+	return hit;
+	*/
 }
