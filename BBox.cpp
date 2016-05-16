@@ -408,11 +408,11 @@ void BBox::split(Objects *gl_objects, std::queue<BBox*> &splitQueue, unsigned in
 	*/
 	
 	leaf = false;
-	if (leftChildren.size() > 10) {
+	if (leftChildren.size() > 8 && !rightChildren.empty()) {
 		//leftBox->split(gl_objects, recurse + 1);
 		splitQueue.push(leftBox);
 	}
-	if (rightChildren.size() > 10) {
+	if (rightChildren.size() > 8 && !rightChildren.empty()) {
 		//rightBox->split(gl_objects, recurse + 1);
 		splitQueue.push(rightBox);
 	}

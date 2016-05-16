@@ -88,9 +88,9 @@ BVH::build(Objects * objs)
 		if (currBox->leftBox) treeQueue.push(currBox->rightBox);
 		treeQueue.pop();
 	}
-
+	std::cout << "~~~~~~~~~~~~ START OF TASK 3 STATS ~~~~~~~~~~~~\n" << std::endl;
 	std::cout << "Total Number of BVH Nodes: " << totalNodes << std::endl;
-	std::cout << "Number of Leaf Nodes: " << leafNodes << std::endl;
+	std::cout << "Total Number of BVH Leaf Nodes: " << leafNodes << std::endl;
 	
 	
 }

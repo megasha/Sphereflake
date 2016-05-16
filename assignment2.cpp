@@ -61,12 +61,10 @@ makeTeapotScene()
 	floor->setN2(Vector3(0, 1, 0));
 	floor->setN3(Vector3(0, 1, 0));
 
-	Material* matFloor = new Lambert(Vector3(1.0f, 0.0f, 0.0f));
-
 	Triangle* t = new Triangle;
 	t->setIndex(0);
 	t->setMesh(floor);
-	t->setMaterial(matFloor);
+	t->setMaterial(material);
 	g_scene->addObject(t);
 
 	// let objects do pre-calculations if needed

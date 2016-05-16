@@ -98,6 +98,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 		
 		
 		
+		
 		/*
 		L += std::max(0.0f, irradiance) * result;
 		L += m_ks * pHighlight*std::max(0.0f, irradiance);

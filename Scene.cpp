@@ -69,19 +69,22 @@ Scene::raytraceImage(Camera *cam, Image *img)
         }
         img->drawScanline(j);
         glFinish();
-        printf("Rendering Progress: %.3f%%\r", j/float(img->height())*100.0f);
+        //printf("Rendering Progress: %.3f%%\r", j/float(img->height())*100.0f);
         fflush(stdout);
     }
     
-    printf("Rendering Progress: 100.000%\n");
-    debug("done Raytracing!\n");
+   // printf("Rendering Progress: 100.000%\n");
+    //debug("done Raytracing!\n");
 
 	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-	std::cout << "\nRendering Duration: " << duration << " seconds" << std::endl;
 
 	std::cout << "Total Number of Rays: " << numRays << std::endl;
-	std::cout << "Total Number of Box Intersections: " << bCount << std::endl;
-	std::cout << "Total Number of Triangles Intersections: " << tCount << std::endl;
+	std::cout << "Total Number of Ray Box Intersections: " << bCount << std::endl;
+	std::cout << "Total Number of Ray Triangle Intersections: " << tCount << std::endl;
+	std::cout << "\n~~~~~~~~~~~~ END OF TASK 3 STATS ~~~~~~~~~~~~~~\n" << std::endl;
+
+	std::cout << "\nRendering Duration: " << duration << " seconds" << std::endl;
+
 
 }
 
