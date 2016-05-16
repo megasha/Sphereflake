@@ -24,6 +24,9 @@ Scene::openGL(Camera *cam)
 void
 Scene::preCalc()
 {
+	numRays = 0;
+	bCount = 0;
+	tCount = 0;
     Objects::iterator it;
     for (it = m_objects.begin(); it != m_objects.end(); it++)
     {
@@ -75,10 +78,16 @@ Scene::raytraceImage(Camera *cam, Image *img)
 
 	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 	std::cout << "\nRendering Duration: " << duration << " seconds" << std::endl;
+
+	std::cout << "Total Number of Rays: " << numRays << std::endl;
+	std::cout << "Total Number of Box Intersections: " << bCount << std::endl;
+	std::cout << "Total Number of Triangles Intersections: " << tCount << std::endl;
+
 }
 
 bool
-Scene::trace(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
+Scene::trace(HitInfo& minHit, const Ray& ray, float tMin, float tMax)
 {
-    return m_bvh.intersect(minHit, ray, tMin, tMax);
+	numRays++;
+    return m_bvh.intersect(minHit, ray, bCount, tCount, tMin, tMax);
 }

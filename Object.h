@@ -22,7 +22,7 @@ public:
 	virtual void setMax() {}
 
 
-    virtual bool intersect(HitInfo& result, const Ray& ray,
+	virtual bool intersect(HitInfo& result, const Ray& ray, unsigned int &bCount, unsigned int &tCount,
                            float tMin = 0.0f, float tMax = MIRO_TMAX) = 0;
 
 protected:

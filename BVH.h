@@ -10,7 +10,7 @@ class BVH
 public:
     void build(Objects * objs);
 
-    bool intersect(HitInfo& result, const Ray& ray,
+	bool intersect(HitInfo& result, const Ray& ray, unsigned int &bCount, unsigned int &tICount,
                    float tMin = 0.0f, float tMax = MIRO_TMAX) const;
 
 protected:

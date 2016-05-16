@@ -397,10 +397,11 @@ main(int argc, char*argv[])
 	//makeTestScene();
 
 	//Assignment 2
-	//makeTeapotScene();
+	makeTeapotScene();
 	//makeBunny1Scene();
 	//makeBunny20Scene();
-	makeSponzaScene();
+	//makeSponzaScene();
+	//makeCornellScene();
 
 
     MiroWindow miro(&argc, argv);

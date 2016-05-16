@@ -5,22 +5,23 @@
 #include <queue>
 
 BBox::BBox(Vector3 cMin, Vector3 cMax, Objects o) :
-min(cMin), max(cMax), complex_objects(o)
+min(cMin), max(cMax), complex_objects(o), leaf(true)
 {
-	leaf = true;;
+	leftBox = nullptr;
+	rightBox = nullptr;
 }
 
 BBox::BBox(Vector3 cMin, Vector3 cMax, Object *o) :
-min(cMin), max(cMax)
+min(cMin), max(cMax), leaf(true)
 {
-	leaf = true;
+	leftBox = nullptr;
+	rightBox = nullptr;
 	complex_objects.push_back(o);
 }
 
 
 BBox::~BBox()
 {
-	leaf = false;
 }
 
 void 
@@ -78,7 +79,7 @@ BBox::renderGL()
 }
 
 bool 
-BBox::intersect(HitInfo& result, const Ray& r, float tMin, float tMax) {
+BBox::intersect(HitInfo& result, const Ray& r, unsigned int &bCount, unsigned int &tCount, float tMin, float tMax) {
 	float xMin, yMin, zMin, xMax, yMax, zMax;
 	float currMin, currMax;
 
@@ -98,6 +99,7 @@ BBox::intersect(HitInfo& result, const Ray& r, float tMin, float tMax) {
 		result.P = r.o + result.t*r.d;
 
 		//Add Material??
+		bCount++;
 		return true;
 	}
 
@@ -443,16 +445,16 @@ BBox::getBBox(Objects o, Vector3 &min, Vector3 &max) {
 }
 
 bool
-BBox::bvhIntersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax)
+BBox::bvhIntersect(HitInfo& minHit, const Ray& ray, unsigned int &bCount, unsigned int &tCount, float tMin, float tMax)
 {
 	bool hit = false;
 	HitInfo tempMinHit;
 	minHit.t = MIRO_TMAX;
 
-	if (intersect(tempMinHit, ray, tMin, tMax)) {
+	if (intersect(tempMinHit, ray, bCount, tCount, tMin, tMax)) {
 		if (leaf) {
 			for (int i = 0; i < complex_objects.size(); ++i)
-				if (complex_objects[i]->intersect(tempMinHit, ray, tMin, tMax)) {
+				if (complex_objects[i]->intersect(tempMinHit, ray, bCount, tCount, tMin, tMax)) {
 					hit = true;
 					if (tempMinHit.t < minHit.t)
 						minHit = tempMinHit;
@@ -464,8 +466,8 @@ BBox::bvhIntersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax)
 			HitInfo tempMinHitLeft;
 			HitInfo tempMinHitRight;
 
-			left = leftBox->bvhIntersect(tempMinHitLeft, ray, tMin, tMax);
-			right = rightBox->bvhIntersect(tempMinHitRight, ray, tMin, tMax);
+			left = leftBox->bvhIntersect(tempMinHitLeft, ray, bCount, tCount, tMin, tMax);
+			right = rightBox->bvhIntersect(tempMinHitRight, ray, bCount, tCount, tMin, tMax);
 
 			if (left  && right) {
 				hit = true;

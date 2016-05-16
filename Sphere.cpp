@@ -21,7 +21,7 @@ Sphere::renderGL()
 }
 
 bool
-Sphere::intersect(HitInfo& result, const Ray& ray,
+Sphere::intersect(HitInfo& result, const Ray& ray, unsigned int &bCount, unsigned int &tCount,
                   float tMin, float tMax)
 {
     const Vector3 toO = ray.o - m_center; 

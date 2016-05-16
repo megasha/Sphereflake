@@ -16,7 +16,7 @@ Lambert::~Lambert()
 }
 
 Vector3
-Lambert::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
+Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 {
 	Vector3 pattern = Vector3(1.0f);
 	Vector3 patternRand = Vector3(1.0f);
@@ -95,6 +95,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
 			L += std::max(0.0f, irradiance) * result;
 			L += m_ks * pHighlight*std::max(0.0f, irradiance);
 		}
+		
 		
 		
 		/*

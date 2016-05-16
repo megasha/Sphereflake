@@ -97,7 +97,7 @@ Triangle::renderGL()
 
 
 bool
-Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
+Triangle::intersect(HitInfo& result, const Ray& r, unsigned int &bCount, unsigned int &tCount, float tMin, float tMax)
 {
 	TriangleMesh::TupleI3 ti3 = m_mesh->vIndices()[m_index];
 	const Vector3 & v0 = m_mesh->vertices()[ti3.x]; //vertex a of triangle
@@ -147,6 +147,8 @@ Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
 	result.N = normal.normalize();
 	result.P = r.o + result.t*r.d;
 	result.material = this->m_material;
+
+	tCount++;
 
     return true;
 }

@@ -16,18 +16,19 @@ public:
 	virtual Vector3 getCenter() { return ((max - min) / 2.0f) + min; }
 	virtual void renderGL();
 	bool isLeaf() { return leaf; }
-	bool intersect(HitInfo& result, const Ray& ray, float tMin = 0.0f, float tMax = MIRO_TMAX);
+	bool intersect(HitInfo& result, const Ray& ray, unsigned int &bCount, unsigned int &tCount, float tMin = 0.0f, float tMax = MIRO_TMAX);
 	int getNumChildren() { return complex_objects.size(); }
-	bool bvhIntersect(HitInfo& result, const Ray& ray,
+	bool bvhIntersect(HitInfo& result, const Ray& ray, unsigned int &bCount, unsigned int &tCount,
 		float tMin = 0.0f, float tMax = MIRO_TMAX);
 	void split(Objects *gl_objects, std::queue<BBox*> &splitQueue, unsigned int);
 	BBox *leftBox, *rightBox;
 
 protected:
 	Objects complex_objects;
+	bool leaf;
 
 private:
-	bool leaf;
+	
 	Vector3 min;
 	Vector3 max;
 	void getBBox(Objects o, Vector3 &min, Vector3 &max);

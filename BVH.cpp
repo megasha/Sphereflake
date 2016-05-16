@@ -65,7 +65,7 @@ BVH::build(Objects * objs)
 	
 	while (!splitQueue.empty()) {
 		BBox *currBox = splitQueue.front();
-		std::cout << "Num children: " << currBox->getNumChildren() << std::endl;
+		//std::cout << "Num children: " << currBox->getNumChildren() << std::endl;
 		currBox->split(m_objects, splitQueue, 0);
 		splitQueue.pop();
 	}
@@ -74,13 +74,30 @@ BVH::build(Objects * objs)
 
 	std::cout << "BVH Complete" << std::endl;
 	std::cout << "BVH Duration: " << duration << " seconds\n" << std::endl;
+
+	//Traverse tree
+	unsigned int leafNodes = 0;
+	unsigned int totalNodes = 0;
+	std::queue<BBox*> treeQueue;
+	treeQueue.push(mainBox);
+	while (!treeQueue.empty()) {
+		totalNodes++;
+		BBox *currBox = treeQueue.front();
+		if (currBox->isLeaf()) leafNodes++;
+		if (currBox->leftBox) treeQueue.push(currBox->leftBox);
+		if (currBox->leftBox) treeQueue.push(currBox->rightBox);
+		treeQueue.pop();
+	}
+
+	std::cout << "Total Number of BVH Nodes: " << totalNodes << std::endl;
+	std::cout << "Number of Leaf Nodes: " << leafNodes << std::endl;
 	
 	
 }
 
 //Return bool and minHit
 bool
-BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
+BVH::intersect(HitInfo& minHit, const Ray& ray, unsigned int &bCount, unsigned int &tCount, float tMin, float tMax) const
 {
     // Here you would need to traverse the BVH to perform ray-intersection
     // acceleration. For now we just intersect every object.
@@ -90,7 +107,7 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
     HitInfo tempMinHit;
     minHit.t = MIRO_TMAX;
 
-	if (mainBox->bvhIntersect(tempMinHit, ray, tMin, tMax)) {
+	if (mainBox->bvhIntersect(tempMinHit, ray,bCount, tCount, tMin, tMax)) {
 		hit = true;
 		if (tempMinHit.t < minHit.t)
 			minHit = tempMinHit;

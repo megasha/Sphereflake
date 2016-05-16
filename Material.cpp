@@ -9,7 +9,7 @@ Material::~Material()
 }
 
 Vector3
-Material::shade(const Ray&, const HitInfo&, const Scene&) const
+Material::shade(const Ray&, const HitInfo&, Scene&) const
 {
     return Vector3(1.0f, 1.0f, 1.0f);
 }
