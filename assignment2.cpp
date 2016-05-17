@@ -28,6 +28,7 @@ makeTeapotScene()
 	g_image = new Image;
 
 	g_image->resize(512, 512);
+	g_scene->setSamples(10);
 
 	// set up the camera
 	g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
@@ -80,6 +81,8 @@ makeBunny1Scene()
 	g_image = new Image;
 
 	g_image->resize(512, 512);
+	g_scene->setSamples(10);
+
 
 	// set up the camera
 	g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
@@ -347,6 +350,8 @@ makeSponzaScene()
 	g_image = new Image;
 
 	g_image->resize(512, 512);
+	g_scene->setSamples(16);
+
 
 	// set up the camera
 	g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
@@ -379,6 +384,8 @@ makeCornellScene()
 	g_image = new Image;
 
 	g_image->resize(512, 512);
+	g_scene->setSamples(10);
+
 
 	// set up the camera
 	g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));

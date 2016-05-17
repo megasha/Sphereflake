@@ -7,6 +7,13 @@
 
 Scene * g_scene = 0;
 
+Scene::Scene() {
+	numRays = 0;
+	bCount = 0;
+	tCount = 0;
+	samples = 1;
+}
+
 void
 Scene::openGL(Camera *cam)
 {
@@ -24,9 +31,6 @@ Scene::openGL(Camera *cam)
 void
 Scene::preCalc()
 {
-	numRays = 0;
-	bCount = 0;
-	tCount = 0;
     Objects::iterator it;
     for (it = m_objects.begin(); it != m_objects.end(); it++)
     {
@@ -55,17 +59,30 @@ Scene::raytraceImage(Camera *cam, Image *img)
 	std::clock_t start;
 	double duration;
 	start = std::clock();
+	bool hit = false;
+	unsigned int sampleHits = 0;
 
     for (int j = 0; j < img->height(); ++j)
     {
         for (int i = 0; i < img->width(); ++i)
         {
-            ray = cam->eyeRay(i, j, img->width(), img->height());
-            if (trace(hitInfo, ray))
-            {
-                shadeResult = hitInfo.material->shade(ray, hitInfo, *this);
-                img->setPixel(i, j, shadeResult);
-            }
+			for (int k = 0; k < samples; k++) {
+
+				ray = cam->eyeRay(i, j, img->width(), img->height());
+				if (trace(hitInfo, ray))
+				{
+					hit = true;
+					sampleHits++;
+					shadeResult += hitInfo.material->shade(ray, hitInfo, *this);	
+				}
+			}
+			if (hit) {
+				shadeResult /= (float) sampleHits;
+				img->setPixel(i, j, shadeResult);
+				hit = false;
+				shadeResult = Vector3(0.0f);
+				sampleHits = 0;
+			}		
         }
         img->drawScanline(j);
         glFinish();

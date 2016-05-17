@@ -12,6 +12,7 @@
 #include "Lambert.h"
 #include "MiroWindow.h"
 #include "assignment2.h"
+#include <ctime>
 
 void
 makeSpiralScene()
@@ -389,6 +390,8 @@ makeTestScene()
 int
 main(int argc, char*argv[])
 {
+	srand(time(0));
+
     // create a scene
     //makeSpiralScene();
 	//makeBunnyScene();
@@ -397,11 +400,11 @@ main(int argc, char*argv[])
 	//makeTestScene();
 
 	//Assignment 2
-	makeTeapotScene();
+	//makeTeapotScene();
 	//makeBunny1Scene();
 	//makeBunny20Scene();
 	//makeSponzaScene();
-	//makeCornellScene();
+	makeCornellScene();
 
 
     MiroWindow miro(&argc, argv);

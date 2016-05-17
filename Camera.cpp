@@ -107,6 +107,7 @@ Camera::PrintCamera()
 Ray
 Camera::eyeRay(int x, int y, int imageWidth, int imageHeight)
 {
+
     // first compute the camera coordinate system 
     // ------------------------------------------
 
@@ -129,13 +130,26 @@ Camera::eyeRay(int x, int y, int imageWidth, int imageHeight)
     const float bottom  = -top; 
     const float left    = -right; 
 
+	float xRan = ((float)rand() / (RAND_MAX));
+	float yRan = ((float)rand() / (RAND_MAX));
+
+	//std::cout << "\nxRan: " << xRan << std::endl;
+	//std::cout << "yRan: " << yRan << std::endl;
+
 
 
     // transform x and y into camera space 
     // -----------------------------------
 
+	/*
     const float imPlaneUPos = left   + (right - left)*(((float)x+0.5f)/(float)imageWidth); 
     const float imPlaneVPos = bottom + (top - bottom)*(((float)y+0.5f)/(float)imageHeight); 
+	*/
+
+	
+	const float imPlaneUPos = left + (right - left)*(((float)x + xRan) / (float)imageWidth);
+	const float imPlaneVPos = bottom + (top - bottom)*(((float)y + yRan) / (float)imageHeight);
+	
 
     return Ray(m_eye, (imPlaneUPos*uDir + imPlaneVPos*vDir - wDir).normalize());
 }

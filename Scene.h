@@ -12,6 +12,7 @@ class Image;
 class Scene
 {
 public:
+	Scene();
     void addObject(Object* pObj)        {m_objects.push_back(pObj);}
     const Objects* objects() const      {return &m_objects;}
 
@@ -20,6 +21,7 @@ public:
 
     void preCalc();
     void openGL(Camera *cam);
+	void setSamples(int s) { samples = s; }
 
 	void setBackground(const Vector3 & b) { m_bg = b; }
 	const Vector3 & bg() const { return m_bg; }
@@ -34,9 +36,11 @@ protected:
     BVH m_bvh;
     Lights m_lights;
 	Vector3 m_bg;
+	int samples;
 	unsigned int numRays;
 	unsigned int bCount;
 	unsigned int tCount;
+	
 };
 
 extern Scene * g_scene;
