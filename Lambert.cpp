@@ -4,6 +4,10 @@
 #include <algorithm>
 #include "Worley.h"
 #include "Perlin.h"
+#include <random>
+
+std::default_random_engine gen;
+std::uniform_real_distribution<float> dist(0, 1);
 
 Lambert::Lambert(const Vector3 & kd, const Vector3 & ks, const Vector3 & ka,
 	const bool & texture, const float & reflec, const float & refrac) :
@@ -49,7 +53,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 
     Vector3 L = Vector3(0.0f, 0.0f, 0.0f);
 
-	if (ray.rayNum > 1) return L;
+	if (ray.rayNum > 5) return L;
     
     const Vector3 viewDir = ray.d; // d is a unit vector
     
@@ -74,7 +78,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
         Vector3 result = pLight->color();
         result *= pattern*patternRand*color;
 
-		float irradiance = nDotL / falloff * pLight->wattage() / (0.5*PI);
+		float irradiance = nDotL / falloff * pLight->wattage() / (4.0f*PI);
 
 
 		//Compute phong highlight
@@ -96,14 +100,91 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 			L += m_ks * pHighlight*std::max(0.0f, irradiance);
 		}
 		
-		
-		
-		
 		/*
 		L += std::max(0.0f, irradiance) * result;
 		L += m_ks * pHighlight*std::max(0.0f, irradiance);
 		*/
     }
+
+	//Indirrect Diffuse Lighting
+	
+	/*
+	Vector3 Nx;
+	if (std::fabs(hit.N.x) > std::fabs(hit.N.y))
+		Nx = Vector3(hit.N.z, 0.0f, -hit.N.x) / sqrt(hit.N.x * hit.N.x + hit.N.z * hit.N.z);
+	else
+		Nx = Vector3(0.0f, -hit.N.z, hit.N.y) / sqrt(hit.N.y * hit.N.y + hit.N.z * hit.N.z);
+
+	Vector3 Nz = cross(hit.N, Nx);
+
+	Vector3 randV(((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)));
+	Nx = cross(hit.N, randV);
+	Nz = cross(Nx, hit.N);
+
+
+	float theta = sqrtf(((float)rand() / (RAND_MAX)));
+	theta = asinf(theta);
+
+	float phi = 2.0f * PI * ((float)rand() / (RAND_MAX));
+	
+	Vector3 randomRay;
+	randomRay.x = cos(phi) * sin(theta);
+	randomRay.y = sin(phi) * sin(phi);
+	randomRay.z = cos(theta);
+
+	randomRay = Nx * randomRay.x + hit.N *randomRay.y + Nz * randomRay.z;
+	*/
+	
+	float rand0 = dist(gen);
+	float rand1 = dist(gen);
+
+	float theta, phi;
+	Vector3 Nx, Nz;
+
+	//theta = 2 * PI * rand0;
+	//phi = sqrtf(1.0f - rand1*rand1);
+	int temp0, temp1, temp2;
+	temp0 = rand() % 2;
+	temp1 = rand() % 2;
+	temp2 = rand() % 2;
+	phi = sqrtf(rand0);
+	theta = 2 * PI * rand1;
+	Vector3 randV;
+	randV.x = (float)rand();
+	randV.y = (float)rand();
+	randV.z = (float)rand();
+	if (temp0) randV.x = -randV.x;
+	if (temp1) randV.y = -randV.y;
+	if (temp2) randV.z = -randV.z;
+
+	randV.normalize();
+
+
+
+	Nx = cross(hit.N, randV);
+	Nz = cross(Nx, hit.N);
+
+	Vector3 randomRay;
+	/*
+	randomRay.x = phi*cosf(theta);
+	randomRay.y = rand1;
+	randomRay.z = phi * sin(theta);
+	*/
+	randomRay.x = phi * cosf(theta);
+	randomRay.y = sqrt(std::max(0.0f, 1-rand1));
+	randomRay.z = phi * sinf(theta);
+	randomRay = randomRay.x * Nx + randomRay.y * hit.N + randomRay.z * Nz;
+	
+	
+
+	Ray sampleRay;
+	sampleRay.o = hit.P;
+	sampleRay.d = randomRay.normalize();
+	sampleRay.rayNum = ray.rayNum + 1;
+	HitInfo hitRand;
+	if (scene.trace(hitRand, sampleRay, 0.001f, MIRO_TMAX)) {
+		L += (m_kd * std::max(0.0f,dot(hit.N, sampleRay.d)) * hitRand.material->shade(sampleRay, hitRand, scene));
+	}
 
 	//Specular reflection
 	/*

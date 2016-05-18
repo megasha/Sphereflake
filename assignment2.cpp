@@ -384,7 +384,7 @@ makeCornellScene()
 	g_image = new Image;
 
 	g_image->resize(512, 512);
-	g_scene->setSamples(10);
+	g_scene->setSamples(256);
 
 
 	// set up the camera
@@ -396,7 +396,7 @@ makeCornellScene()
 
 	// create and place a point light source
 	PointLight * light = new PointLight;
-	light->setPosition(Vector3(2.75f, 5.45, -2.75f));
+	light->setPosition(Vector3(2.75f, 5.45f, -2.75f));
 	light->setColor(Vector3(1, 1, 1));
 	light->setWattage(100);
 	g_scene->addLight(light);

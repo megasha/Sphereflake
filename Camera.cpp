@@ -133,6 +133,7 @@ Camera::eyeRay(int x, int y, int imageWidth, int imageHeight)
 	float xRan = ((float)rand() / (RAND_MAX));
 	float yRan = ((float)rand() / (RAND_MAX));
 
+
 	//std::cout << "\nxRan: " << xRan << std::endl;
 	//std::cout << "yRan: " << yRan << std::endl;
 

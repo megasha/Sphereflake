@@ -147,6 +147,7 @@ makeOldTeapotScene()
 	g_image = new Image;
 
 	g_image->resize(128, 128);
+	g_scene->setSamples(10);
 
 	g_scene->setBackground(Vector3(0.0f, 0.0f, 0.2f));
 
@@ -182,14 +183,16 @@ makeOldTeapotScene()
 	teapot->load("models/teapot.obj");
 
 	Material* matFloor = new Lambert(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f), Vector3(0.0f, 0.0f, 0.0f), 1, 0, 0);
-	Material* matTeapot = new Lambert(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f), 0, 0.8f, 0.0f);
+	Material* matTeapot = new Lambert(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f), 0, 1.0f, 0.0f);
 	Material* matSolidSphere = new Lambert(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.1f, 0.1f, 0.1f), Vector3(0.0f), 0, 0, 0);
 
+	/*
 	Sphere * sphere = new Sphere;
 	sphere->setCenter(Vector3(-1, 1, -3));
 	sphere->setRadius(1);
 	sphere->setMaterial(matSolidSphere);
 	g_scene->addObject(sphere);
+	*/
 
 	// create all the triangles in the bunny mesh and add to the scene
 	for (int i = 0; i < teapot->numTris(); ++i)

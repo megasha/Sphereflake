@@ -126,7 +126,7 @@ Triangle::intersect(HitInfo& result, const Ray& r, unsigned int &bCount, unsigne
 	t /= detA;
 
 	//Check
-	if (t < tMin || t > tMax) return false;
+	if (t <= tMin || t >= tMax) return false;
 
 	//Compute Alpha
 	Vector3 temp = cross(b, AC);
