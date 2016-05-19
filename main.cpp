@@ -395,14 +395,14 @@ main(int argc, char*argv[])
 {
 	srand(time(0));
 
-    // create a scene
+    //Assignment1
     //makeSpiralScene();
 	//makeBunnyScene();
 	//makeOldTeapotScene();
 	//makeSphereScene();
 	//makeTestScene();
 
-	//Assignment 2
+	//Assignment2
 	//makeTeapotScene();
 	//makeBunny1Scene();
 	//makeBunny20Scene();

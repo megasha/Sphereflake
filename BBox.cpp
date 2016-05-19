@@ -106,13 +106,6 @@ BBox::intersect(HitInfo& result, const Ray& r, unsigned int &bCount, unsigned in
 	return false;
 }
 
-/*
-Vector3 
-BBox::getCenter(){
-	return (max - min) / 2.0f; 
-}
-*/
-
 float
 BBox::getCost(unsigned int &lTriangles, unsigned int &rTriangles, Vector3 &lMin, Vector3 &lMax, Vector3 &rMin, Vector3 &rMax){
 	float ret = 0;
@@ -327,7 +320,7 @@ void BBox::split(Objects *gl_objects, std::queue<BBox*> &splitQueue, unsigned in
 		rightObjects.clear();
 	}
 
-	
+	//Decide which axis contains the least cost
 	float cost = costX;
 	unsigned int axisCost = 0;
 
@@ -383,42 +376,29 @@ void BBox::split(Objects *gl_objects, std::queue<BBox*> &splitQueue, unsigned in
 	Vector3 minLeft, minRight, maxLeft, maxRight;
 	Vector3 tempMin, tempMax;
 	
+	//Get min and max of two child boxes
 	getBBox(leftChildren, minLeft, maxLeft);
 	getBBox(rightChildren, minRight, maxRight);
 
 	//Create two child boxes
-	
 	complex_objects.clear();
 	leftBox = new BBox(minLeft, maxLeft, leftChildren);
 	rightBox = new BBox(minRight, maxRight, rightChildren);
 	
+	//Add child box to openGL preview
 	gl_objects->push_back(leftBox);
 	gl_objects->push_back(rightBox);
-
-	/*
-	leaf = false;
-	if (recurse < 6) {
-		leaf = false;
-		leftBox->split(gl_objects, recurse + 1);
-	}
-	if (recurse < 6) {
-		leaf = false;
-		rightBox->split(gl_objects, recurse + 1);
-	}
-	*/
 	
+	//This box is no longer a leaf since it has children
 	leaf = false;
+
+	//Check size of children, if they have 8 triangles, try to split them
 	if (leftChildren.size() > 8 && !rightChildren.empty()) {
-		//leftBox->split(gl_objects, recurse + 1);
 		splitQueue.push(leftBox);
 	}
 	if (rightChildren.size() > 8 && !rightChildren.empty()) {
-		//rightBox->split(gl_objects, recurse + 1);
 		splitQueue.push(rightBox);
 	}
-	
-	
-	
 	
 }
 
@@ -451,7 +431,10 @@ BBox::bvhIntersect(HitInfo& minHit, const Ray& ray, unsigned int &bCount, unsign
 	HitInfo tempMinHit;
 	minHit.t = MIRO_TMAX;
 
+	//See if the ray intersects this box
 	if (intersect(tempMinHit, ray, bCount, tCount, tMin, tMax)) {
+
+		//If it is a leaf, traverse triangles and see if there is a hit
 		if (leaf) {
 			for (int i = 0; i < complex_objects.size(); ++i)
 				if (complex_objects[i]->intersect(tempMinHit, ray, bCount, tCount, tMin, tMax)) {
@@ -460,6 +443,8 @@ BBox::bvhIntersect(HitInfo& minHit, const Ray& ray, unsigned int &bCount, unsign
 						minHit = tempMinHit;
 				}
 		}
+
+		//Else, traverse childre
 		else {
 			bool left = false;
 			bool right = false;
@@ -469,6 +454,7 @@ BBox::bvhIntersect(HitInfo& minHit, const Ray& ray, unsigned int &bCount, unsign
 			left = leftBox->bvhIntersect(tempMinHitLeft, ray, bCount, tCount, tMin, tMax);
 			right = rightBox->bvhIntersect(tempMinHitRight, ray, bCount, tCount, tMin, tMax);
 
+			//If both children have triangle intersections, return the one with least distance
 			if (left  && right) {
 				hit = true;
 				if (tempMinHitLeft.t < minHit.t)
@@ -476,11 +462,15 @@ BBox::bvhIntersect(HitInfo& minHit, const Ray& ray, unsigned int &bCount, unsign
 				if (tempMinHitRight.t < minHit.t)
 					minHit = tempMinHitRight;
 			}
+
+			//If left child has intersection, return hit
 			else if (left) {
 				hit = true;
 				if (tempMinHitLeft.t < minHit.t)
 					minHit = tempMinHitLeft;
 			}
+
+			//If right child has intersection, return hit
 			else if (right) {
 				hit = true;
 				if (tempMinHitRight.t < minHit.t)
@@ -489,18 +479,4 @@ BBox::bvhIntersect(HitInfo& minHit, const Ray& ray, unsigned int &bCount, unsign
 		}
 	}
 	return hit;
-
-	/*
-	for (size_t i = 0; i < complex_objects.size(); ++i)
-	{
-	if (complex_objects[i]->intersect(tempMinHit, ray, tMin, tMax))
-	{
-	hit = true;
-	if (tempMinHit.t < minHit.t)
-	minHit = tempMinHit;
-	}
-	}
-
-	return hit;
-	*/
 }

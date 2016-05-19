@@ -99,84 +99,48 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 			L += std::max(0.0f, irradiance) * result;
 			L += m_ks * pHighlight*std::max(0.0f, irradiance);
 		}
-		
-		/*
-		L += std::max(0.0f, irradiance) * result;
-		L += m_ks * pHighlight*std::max(0.0f, irradiance);
-		*/
+	
     }
 
-	//Indirrect Diffuse Lighting
-	
-	/*
-	Vector3 Nx;
-	if (std::fabs(hit.N.x) > std::fabs(hit.N.y))
-		Nx = Vector3(hit.N.z, 0.0f, -hit.N.x) / sqrt(hit.N.x * hit.N.x + hit.N.z * hit.N.z);
-	else
-		Nx = Vector3(0.0f, -hit.N.z, hit.N.y) / sqrt(hit.N.y * hit.N.y + hit.N.z * hit.N.z);
-
-	Vector3 Nz = cross(hit.N, Nx);
-
-	Vector3 randV(((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)));
-	Nx = cross(hit.N, randV);
-	Nz = cross(Nx, hit.N);
-
-
-	float theta = sqrtf(((float)rand() / (RAND_MAX)));
-	theta = asinf(theta);
-
-	float phi = 2.0f * PI * ((float)rand() / (RAND_MAX));
-	
-	Vector3 randomRay;
-	randomRay.x = cos(phi) * sin(theta);
-	randomRay.y = sin(phi) * sin(phi);
-	randomRay.z = cos(theta);
-
-	randomRay = Nx * randomRay.x + hit.N *randomRay.y + Nz * randomRay.z;
-	*/
-	
+	/***Indirrect Diffuse Lighting**/
+	float theta, phi;
+	Vector3 Nx, Nz;
+	Vector3 randV;
+	int temp0, temp1, temp2;
 	float rand0 = dist(gen);
 	float rand1 = dist(gen);
 
-	float theta, phi;
-	Vector3 Nx, Nz;
-
-	//theta = 2 * PI * rand0;
-	//phi = sqrtf(1.0f - rand1*rand1);
-	int temp0, temp1, temp2;
+	//Create random vector
 	temp0 = rand() % 2;
 	temp1 = rand() % 2;
 	temp2 = rand() % 2;
-	phi = sqrtf(rand0);
-	theta = 2 * PI * rand1;
-	Vector3 randV;
 	randV.x = (float)rand();
 	randV.y = (float)rand();
 	randV.z = (float)rand();
 	if (temp0) randV.x = -randV.x;
 	if (temp1) randV.y = -randV.y;
 	if (temp2) randV.z = -randV.z;
-
 	randV.normalize();
 
-
-
+	//Create coordinate axis where hit normal is y axis
 	Nx = cross(hit.N, randV);
 	Nz = cross(Nx, hit.N);
 
-	Vector3 randomRay;
-	/*
-	randomRay.x = phi*cosf(theta);
-	randomRay.y = rand1;
-	randomRay.z = phi * sin(theta);
-	*/
-	randomRay.x = phi * cosf(theta);
-	randomRay.y = sqrt(std::max(0.0f, 1-rand1));
-	randomRay.z = phi * sinf(theta);
-	randomRay = randomRay.x * Nx + randomRay.y * hit.N + randomRay.z * Nz;
-	
+	//Get random spherical coordinates
+	theta = sqrtf(rand0);
+	theta = asinf(theta);
+	phi = 2.0f * PI * (rand1);
 	
 
+	//Convert random spherical coordinates to local cartesian coordinates
+	Vector3 randomRay;	
+	randomRay.x = cosf(phi) * sinf(theta);
+	randomRay.y = sinf(phi) * sinf(phi);
+	randomRay.z = cosf(theta);
+	
+	//Convert to world coordinates
+	randomRay = randomRay.x * Nx + randomRay.y * hit.N + randomRay.z * Nz;
+	
 	Ray sampleRay;
 	sampleRay.o = hit.P;
 	sampleRay.d = randomRay.normalize();
@@ -186,69 +150,71 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 		L += (m_kd * std::max(0.0f,dot(hit.N, sampleRay.d)) * hitRand.material->shade(sampleRay, hitRand, scene));
 	}
 
-	//Specular reflection
-	/*
-	Vector3 reflection = -2 * dot(viewDir, hit.N) * hit.N + viewDir;
-	Ray ray2;
-	ray2.o = hit.P;
-	ray2.d = reflection.normalize();
-	ray2.rayNum = ray.rayNum+1;
-	HitInfo stage2;
-	if (scene.trace(stage2, ray2, 0.001f, MIRO_TMAX)){
-		L += m_reflec * stage2.material->shade(ray2, stage2, scene);
-	}
-	else
-		L += m_reflec * scene.bg();
-	*/
-	
-	
-	//Specular refraction
-	/*
-	float n1 = 1.00029f;
-	float n2 = 1.6f;
-	float n = n1 / n2;
-
-	float nDotV = dot(-viewDir, hit.N);
-
-	if (nDotV <= 0) {
-		n = n2 / n1;
-		nDotV = dot(-viewDir,-hit.N);
-	}
-
-	float sinT2 = n * n * (1.0f - (nDotV*nDotV));
-	
-	Vector3 refract;
-	if (dot(-viewDir, hit.N) > 0)
-		refract = -n*(-viewDir - nDotV*hit.N) - (sqrt(1.0f - sinT2)*hit.N);
-	else
-		refract = -n*(-viewDir - nDotV*-hit.N) - (sqrt(1.0f - sinT2)*-hit.N);
-
-
-	Ray ray3;
-	ray3.o = hit.P;
-	ray3.d = refract.normalize();
-	ray3.rayNum = ray.rayNum + 1;
-	HitInfo stage3;
-	if (sinT2 > 1.0) {
-		if (nDotV > 0)
-			reflection = -2.0f * nDotV * hit.N + viewDir;
-		else
-			reflection = -2.0f * nDotV * -hit.N + viewDir;
-
+	/***Specular Reflection**/
+	if (m_reflec > 0) {
+		Vector3 reflection = -2 * dot(viewDir, hit.N) * hit.N + viewDir;
+		Ray ray2;
 		ray2.o = hit.P;
 		ray2.d = reflection.normalize();
 		ray2.rayNum = ray.rayNum + 1;
-		if (scene.trace(stage2, ray2, 0.0001f, MIRO_TMAX)){
-			L += m_refrac * stage2.material->shade(ray2, stage2, scene);
+		HitInfo stage2;
+		if (scene.trace(stage2, ray2, 0.001f, MIRO_TMAX)){
+			L += m_reflec * stage2.material->shade(ray2, stage2, scene);
 		}
+		else
+			L += m_reflec * scene.bg();
 	}
-	else if (scene.trace(stage3, ray3, 0.0001f, MIRO_TMAX)){
-		L += m_refrac * stage3.material->shade(ray3, stage3, scene);
-	}
-	else L += m_refrac *scene.bg();
-	*/
 	
-    
+	
+	
+	/***Specular Refraction**/
+	if (m_refrac > 0) {
+		float n1 = 1.00029f;
+		float n2 = 1.6f;
+		float n = n1 / n2;
+
+		float nDotV = dot(-viewDir, hit.N);
+
+		if (nDotV <= 0) {
+			n = n2 / n1;
+			nDotV = dot(-viewDir, -hit.N);
+		}
+
+		float sinT2 = n * n * (1.0f - (nDotV*nDotV));
+
+		Vector3 refract;
+		if (dot(-viewDir, hit.N) > 0)
+			refract = -n*(-viewDir - nDotV*hit.N) - (sqrt(1.0f - sinT2)*hit.N);
+		else
+			refract = -n*(-viewDir - nDotV*-hit.N) - (sqrt(1.0f - sinT2)*-hit.N);
+
+		Vector3 reflection = -2 * dot(viewDir, hit.N) * hit.N + viewDir;
+		Ray ray2;
+		Ray ray3;
+		ray3.o = hit.P;
+		ray3.d = refract.normalize();
+		ray3.rayNum = ray.rayNum + 1;
+		HitInfo stage2;
+		HitInfo stage3;
+		if (sinT2 > 1.0) {
+			if (nDotV > 0)
+				reflection = -2.0f * nDotV * hit.N + viewDir;
+			else
+				reflection = -2.0f * nDotV * -hit.N + viewDir;
+
+			ray2.o = hit.P;
+			ray2.d = reflection.normalize();
+			ray2.rayNum = ray.rayNum + 1;
+			if (scene.trace(stage2, ray2, 0.0001f, MIRO_TMAX)){
+				L += m_refrac * stage2.material->shade(ray2, stage2, scene);
+			}
+		}
+		else if (scene.trace(stage3, ray3, 0.0001f, MIRO_TMAX)){
+			L += m_refrac * stage3.material->shade(ray3, stage3, scene);
+		}
+		else L += m_refrac *scene.bg();
+	}
+	
     // Ambient component
     L += m_ka;
     

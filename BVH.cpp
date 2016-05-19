@@ -28,11 +28,6 @@ BVH::build(Objects * objs)
 		(*objs)[i]->setMax(); //for debug purposes
 		BBoxes.push_back(aBox);
 	}
-	
-	for (int i = 0; i < BBoxes.size(); i++)
-	{
-		//m_objects->push_back(BBoxes[i]);
-	}
 
 	//Calculate main box
 	Vector3 min, max;
@@ -55,7 +50,6 @@ BVH::build(Objects * objs)
 		max.z = std::max(tempMax.z,max.z);
 	}
 
-	//mainBox = new BBox(min, max, BBoxes);
 	mainBox = new BBox(min, max, original);
 	m_objects->push_back(mainBox);
 
@@ -65,7 +59,6 @@ BVH::build(Objects * objs)
 	
 	while (!splitQueue.empty()) {
 		BBox *currBox = splitQueue.front();
-		//std::cout << "Num children: " << currBox->getNumChildren() << std::endl;
 		currBox->split(m_objects, splitQueue, 0);
 		splitQueue.pop();
 	}
@@ -107,24 +100,11 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, unsigned int &bCount, unsigned i
     HitInfo tempMinHit;
     minHit.t = MIRO_TMAX;
 
+	//Traverse BVH structure by iterating the mainBox
 	if (mainBox->bvhIntersect(tempMinHit, ray,bCount, tCount, tMin, tMax)) {
 		hit = true;
 		if (tempMinHit.t < minHit.t)
 			minHit = tempMinHit;
-	}
-
-	/*
-	if (mainBox->intersect(tempMinHit, ray, tMin, tMax)){
-		if (mainBox->isLeaf()){
-			hit = mainBox->bvhIntersect(tempMinHit, ray, tempMinHit.t, tMax);
-			minHit = tempMinHit;
-		}
-		else {
-			mainBox->leftBox->bvhIntersect(tempMinHit, ray, tMin, tMax);
-
-		}
-	}
-	*/
-    
+	}   
     return hit;
 }

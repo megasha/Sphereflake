@@ -384,7 +384,7 @@ makeCornellScene()
 	g_image = new Image;
 
 	g_image->resize(512, 512);
-	g_scene->setSamples(256);
+	g_scene->setSamples(10);
 
 
 	// set up the camera
