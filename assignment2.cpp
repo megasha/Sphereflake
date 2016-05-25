@@ -28,7 +28,7 @@ makeTeapotScene()
 	g_image = new Image;
 
 	g_image->resize(512, 512);
-	g_scene->setSamples(10);
+	g_scene->setSamples(100);
 
 	// set up the camera
 	g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
