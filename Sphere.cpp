@@ -63,3 +63,19 @@ Sphere::intersect(HitInfo& result, const Ray& ray, unsigned int &bCount, unsigne
 
     return true;
 }
+
+Vector3 Sphere::getMin() {
+	Vector3 ret;
+	ret.x = m_center.x - m_radius;
+	ret.y = m_center.y - m_radius;
+	ret.z = m_center.z - m_radius;
+	return ret;
+}
+
+Vector3 Sphere::getMax() {
+	Vector3 ret;
+	ret.x = m_center.x + m_radius;
+	ret.y = m_center.y + m_radius;
+	ret.z = m_center.z + m_radius;
+	return ret;
+}

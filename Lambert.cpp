@@ -53,7 +53,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 
     Vector3 L = Vector3(0.0f, 0.0f, 0.0f);
 
-	if (ray.rayNum > 5) return L;
+	if (ray.rayNum > 0) return L;
     
     const Vector3 viewDir = ray.d; // d is a unit vector
     

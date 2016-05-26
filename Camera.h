@@ -57,6 +57,7 @@ private:
     Vector3 m_eye;
     Vector3 m_up;
     Vector3 m_viewDir;
+	Vector3 m_lookAtOrig;
     Vector3 m_lookAt;
     float m_fov;
 };
@@ -105,6 +106,7 @@ inline void Camera::setLookAt(float x, float y, float z)
 
 inline void Camera::setLookAt(const Vector3& vd)
 {
+	m_lookAtOrig = vd;
     setLookAt(vd.x, vd.y, vd.z);
 }
 

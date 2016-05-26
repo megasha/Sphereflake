@@ -20,6 +20,7 @@ Camera::Camera() :
     m_viewDir(0,0,-1),
     m_up(0,1,0),
     m_lookAt(FLT_MAX, FLT_MAX, FLT_MAX),
+	m_lookAtOrig(FLT_MAX, FLT_MAX, FLT_MAX),
     m_fov((45.)*(PI/180.))
 {
     calcLookAt();
@@ -116,12 +117,14 @@ Camera::eyeRay(int x, int y, int imageWidth, int imageHeight)
     const Vector3 uDir = cross(m_up, wDir).normalize(); 
     const Vector3 vDir = cross(wDir, uDir);    
 
-
+	const float focalDist = (m_lookAtOrig - m_eye).length();
 
     // next find the corners of the image plane in camera space
     // --------------------------------------------------------
 
     const float aspectRatio = (float)imageWidth/(float)imageHeight; 
+	Vector3 xApertureRadius = uDir * 0.09f;
+	Vector3 yApertureRadius = vDir * 0.09f;
 
 
     const float top     = tan(m_fov*HalfDegToRad); 
@@ -132,6 +135,19 @@ Camera::eyeRay(int x, int y, int imageWidth, int imageHeight)
 
 	float xRan = ((float)rand() / (RAND_MAX));
 	float yRan = ((float)rand() / (RAND_MAX));
+
+	/*
+	float xRanDof = ((float)rand() / (RAND_MAX));
+	float yRanDof = ((float)rand() / (RAND_MAX));
+
+	int temp0, temp1, temp2;
+	temp0 = rand() % 2;
+	temp1 = rand() % 2;
+
+	if (temp0) xRanDof = -xRanDof;
+	if (temp1) yRanDof = -yRanDof;
+	*/
+
 
 
 	//std::cout << "\nxRan: " << xRan << std::endl;
@@ -151,6 +167,7 @@ Camera::eyeRay(int x, int y, int imageWidth, int imageHeight)
 	const float imPlaneUPos = left + (right - left)*(((float)x + xRan) / (float)imageWidth);
 	const float imPlaneVPos = bottom + (top - bottom)*(((float)y + yRan) / (float)imageHeight);
 	
+	//Vector3 newEye = m_eye + xRanDof* xApertureRadius + yRanDof* yApertureRadius;
 
     return Ray(m_eye, (imPlaneUPos*uDir + imPlaneVPos*vDir - wDir).normalize());
 }
