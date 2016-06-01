@@ -11,7 +11,7 @@ public:
     Object() {}
     virtual ~Object() {}
 
-    void setMaterial(const Material* m) {m_material = m;}
+    void setMaterial(Material* m) {m_material = m;}
 
     virtual void renderGL() {}
     virtual void preCalc() {}
@@ -26,7 +26,7 @@ public:
                            float tMin = 0.0f, float tMax = MIRO_TMAX) = 0;
 
 protected:
-    const Material* m_material;
+    Material* m_material;
 };
 
 typedef std::vector<Object*> Objects;

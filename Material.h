@@ -11,6 +11,7 @@ public:
     virtual ~Material();
 
     virtual void preCalc() {}
+	virtual Vector3 getKd() { return Vector3(0.0f); }
     
     virtual Vector3 shade(const Ray& ray, const HitInfo& hit,
                           Scene& scene) const;

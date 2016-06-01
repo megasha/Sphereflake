@@ -27,14 +27,14 @@ main(int argc, char*argv[])
 	//makeBunnyScene();
 	//makeOldTeapotScene();
 	//makeSphereScene();
-	makeTestScene();
+	//makeTestScene();
 
 	//Assignment2
 	//makeTeapotScene();
 	//makeBunny1Scene();
 	//makeBunny20Scene();
 	//makeSponzaScene();
-	//makeCornellScene();
+	makeCornellScene();
 
 
     MiroWindow miro(&argc, argv);

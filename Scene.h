@@ -5,6 +5,7 @@
 #include "Object.h"
 #include "PointLight.h"
 #include "BVH.h"
+#include "photonmap.h"
 
 class Camera;
 class Image;
@@ -30,9 +31,13 @@ public:
     bool trace(HitInfo& minHit, const Ray& ray,
                float tMin = 0.0f, float tMax = MIRO_TMAX);
 	void incNumRays() { numRays++; }
+	void setPhotonMap(Photon_map*);
+	void tracePhoton(Vector3 pos, Vector3 norm, Vector3 pow, int depth, int &numPhotons);
 
 protected:
+	Photon_map *photonMap;
     Objects m_objects;
+	Objects photonDebug;
     BVH m_bvh;
     Lights m_lights;
 	Vector3 m_bg;

@@ -4,6 +4,7 @@
 #include "Image.h"
 #include "Console.h"
 #include <ctime>
+#include "Sphere.h"
 
 Scene * g_scene = 0;
 
@@ -43,13 +44,20 @@ Scene::preCalc()
         PointLight* pLight = *lit;
         pLight->preCalc();
     }
+	m_bvh.build(&m_objects);
 
-    m_bvh.build(&m_objects);
+	photonMap = new Photon_map(10000000);
+	setPhotonMap(photonMap);
+
+   
+
 }
 
 void
 Scene::raytraceImage(Camera *cam, Image *img)
 {
+	
+
     Ray ray;
     HitInfo hitInfo;
     Vector3 shadeResult;
@@ -61,6 +69,8 @@ Scene::raytraceImage(Camera *cam, Image *img)
 	start = std::clock();
 	bool hit = false;
 	unsigned int sampleHits = 0;
+
+	//Setup photon map
 
     for (int j = 0; j < img->height(); ++j)
     {
@@ -74,6 +84,17 @@ Scene::raytraceImage(Camera *cam, Image *img)
 					hit = true;
 					sampleHits++;
 					shadeResult += hitInfo.material->shade(ray, hitInfo, *this);	
+
+					//Add indirect lighting
+					float irrad[3] = { 0, 0, 0 };
+					float hitPoint[3] = { hitInfo.P.x, hitInfo.P.y, hitInfo.P.z };
+					float hitNormal[3] = { hitInfo.N.x, hitInfo.N.y, hitInfo.N.z };
+					photonMap->irradiance_estimate(irrad, hitPoint, hitNormal, 1.0f, 500);
+					Vector3 irradVec(irrad[0], irrad[1], irrad[2]);
+					shadeResult += hitInfo.material->getKd()* irradVec;
+					
+
+
 				}
 			}
 			if (hit) {
@@ -110,4 +131,122 @@ Scene::trace(HitInfo& minHit, const Ray& ray, float tMin, float tMax)
 {
 	numRays++;
     return m_bvh.intersect(minHit, ray, bCount, tCount, tMin, tMax);
+}
+
+void
+Scene::setPhotonMap(Photon_map* photonMap){
+	//Assume one light source (lol)
+	
+	int numPhotons = 0;
+	int maxPhotons = 1000000;
+	
+	Vector3 photonDir;
+	
+	while (numPhotons < maxPhotons) {
+		do {
+			photonDir.x = 2.0f * ((float)rand() / (RAND_MAX)) - 1.0f;
+			photonDir.y = 2.0f * ((float)rand() / (RAND_MAX)) - 1.0f;
+			photonDir.z = 2.0f * ((float)rand() / (RAND_MAX)) - 1.0f;
+		} while ((photonDir.x*photonDir.x + photonDir.y*photonDir.y + photonDir.z*photonDir.z) > 1.0f);
+
+		Ray photonRay;
+		HitInfo hitInfo;
+		photonRay.o = m_lights[0]->position();
+		photonRay.d = photonDir;
+
+		if (trace(hitInfo, photonRay)) {
+			float photonPow = m_lights[0]->wattage();
+
+			float power[3] = { photonPow, photonPow, photonPow };
+			float pos[3] = { hitInfo.P.x, hitInfo.P.y, hitInfo.P.z };
+			float dir[3] = { photonDir.x, photonDir.y, photonDir.z };
+			//std::cout << photonDir << std::endl;
+			photonMap->store(power, pos, dir);
+			numPhotons++;
+
+			Vector3 currkd = hitInfo.material->getKd();
+			currkd *= photonPow;
+			tracePhoton(hitInfo.P,hitInfo.N,currkd, 0, numPhotons);
+
+			/****FOR DEBUGGING PHOTONMAP**/
+			/*
+			Sphere *photonSphere = new Sphere();
+			photonSphere->setCenter(Vector3(pos[0], pos[1], pos[2]));
+			photonSphere->setRadius(0.05f);
+			photonDebug.push_back(photonSphere);
+			m_objects.push_back(photonSphere);
+			*/
+			
+			
+		}
+
+
+	}
+
+	photonMap->scale_photon_power(1.0f/maxPhotons);
+	photonMap->balance();
+	
+
+}
+
+void
+Scene::tracePhoton(Vector3 pos, Vector3 norm, Vector3 pow, int depth, int &numPhotons) {
+	if (depth == 8) return;
+
+	/***Indirrect Diffuse Lighting**/
+	float theta, phi;
+	Vector3 Nx, Nz;
+	Vector3 randV;
+	int temp0, temp1, temp2;
+	float rand0 = ((float)rand() / (RAND_MAX));
+	float rand1 = ((float)rand() / (RAND_MAX));
+
+	//Create random vector
+	temp0 = rand() % 2;
+	temp1 = rand() % 2;
+	temp2 = rand() % 2;
+	randV.x = (float)rand();
+	randV.y = (float)rand();
+	randV.z = (float)rand();
+	if (temp0) randV.x = -randV.x;
+	if (temp1) randV.y = -randV.y;
+	if (temp2) randV.z = -randV.z;
+	randV.normalize();
+
+	//Create coordinate axis where hit normal is y axis
+	Nx = cross(norm, randV);
+	Nz = cross(Nx, norm);
+
+	//Get random spherical coordinates
+	theta = sqrtf(rand0);
+	theta = asinf(theta);
+	phi = 2.0f * PI * (rand1);
+
+
+	//Convert random spherical coordinates to local cartesian coordinates
+	Vector3 randomRay;
+	randomRay.x = cosf(phi) * sinf(theta);
+	randomRay.y = sinf(phi) * sinf(phi);
+	randomRay.z = cosf(theta);
+
+	//Convert to world coordinates
+	randomRay = randomRay.x * Nx + randomRay.y * norm + randomRay.z * Nz;
+
+
+	Ray sampleRay;
+	sampleRay.o = pos;
+	sampleRay.d = randomRay.normalize();
+	HitInfo hitRand;
+	if (trace(hitRand, sampleRay, 0.001f, MIRO_TMAX)) {
+		Vector3 currkd = hitRand.material->getKd();
+
+		float power[3] = { pow.x, pow.y, pow.z };
+		float pos[3] = { hitRand.P.x, hitRand.P.y, hitRand.P.z };
+		float dir[3] = { randomRay.x, randomRay.y, randomRay.z };
+		photonMap->store(power, pos, dir);
+
+		currkd *= pow;
+		numPhotons++;
+		tracePhoton(hitRand.P, hitRand.N, currkd, depth+1,numPhotons) ;
+	}
 }
