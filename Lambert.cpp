@@ -53,7 +53,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 
     Vector3 L = Vector3(0.0f, 0.0f, 0.0f);
 
-	if (ray.rayNum > 0) return L;
+	if (ray.rayNum > 8) return L;
     
     const Vector3 viewDir = ray.d; // d is a unit vector
     
@@ -78,7 +78,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
         Vector3 result = pLight->color();
         result *= pattern*patternRand*color;
 
-		float irradiance = nDotL / falloff * pLight->wattage() / (4.0f*PI);
+		float irradiance = nDotL / falloff * pLight->wattage() / (2.0f*PI);
 
 
 		//Compute phong highlight
@@ -103,6 +103,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
     }
 
 	/***Indirrect Diffuse Lighting**/
+	/*
 	float theta, phi;
 	Vector3 Nx, Nz;
 	Vector3 randV;
@@ -149,6 +150,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 	if (scene.trace(hitRand, sampleRay, 0.001f, MIRO_TMAX)) {
 		L += (m_kd * std::max(0.0f,dot(hit.N, sampleRay.d)) * hitRand.material->shade(sampleRay, hitRand, scene));
 	}
+	*/
 
 	/***Specular Reflection**/
 	if (m_reflec > 0) {
@@ -207,10 +209,22 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 			ray2.rayNum = ray.rayNum + 1;
 			if (scene.trace(stage2, ray2, 0.0001f, MIRO_TMAX)){
 				L += m_refrac * stage2.material->shade(ray2, stage2, scene);
+
+				float irrad[3] = { 0, 0, 0 };
+				float hitPoint[3] = { stage2.P.x, stage2.P.y, stage2.P.z };
+				float hitNormal[3] = { stage2.N.x, stage2.N.y, stage2.N.z };
+				scene.photonMap->irradiance_estimate(irrad, hitPoint, hitNormal, 0.5f, 1000);
+				L += stage2.material->getKd()*Vector3(irrad[0], irrad[1], irrad[2]);
 			}
 		}
 		else if (scene.trace(stage3, ray3, 0.0001f, MIRO_TMAX)){
 			L += m_refrac * stage3.material->shade(ray3, stage3, scene);
+
+			float irrad[3] = { 0, 0, 0 };
+			float hitPoint[3] = { stage3.P.x, stage3.P.y, stage3.P.z };
+			float hitNormal[3] = { stage3.N.x, stage3.N.y, stage3.N.z };
+			scene.photonMap->irradiance_estimate(irrad, hitPoint, hitNormal, 0.5f, 1000);
+			L += stage3.material->getKd()*Vector3(irrad[0], irrad[1], irrad[2]);
 		}
 		else L += m_refrac *scene.bg();
 	}

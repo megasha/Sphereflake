@@ -32,10 +32,15 @@ public:
                float tMin = 0.0f, float tMax = MIRO_TMAX);
 	void incNumRays() { numRays++; }
 	void setPhotonMap(Photon_map*);
+	void setCausticsMap(Photon_map*);
 	void tracePhoton(Vector3 pos, Vector3 norm, Vector3 pow, int depth, int &numPhotons);
+	void traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, int depth, int &numPhotons);
+
+	Photon_map *photonMap;
+	Photon_map *causticsMap;
+
 
 protected:
-	Photon_map *photonMap;
     Objects m_objects;
 	Objects photonDebug;
     BVH m_bvh;

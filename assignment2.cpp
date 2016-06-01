@@ -398,7 +398,7 @@ makeCornellScene()
 	PointLight * light = new PointLight;
 	light->setPosition(Vector3(2.75f, 5.45f, -2.75f));
 	light->setColor(Vector3(1, 1, 1));
-	light->setWattage(100);
+	light->setWattage(75);
 	g_scene->addLight(light);
 
 	TriangleMesh * cornell = new TriangleMesh;

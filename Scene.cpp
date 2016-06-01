@@ -47,7 +47,9 @@ Scene::preCalc()
 	m_bvh.build(&m_objects);
 
 	photonMap = new Photon_map(10000000);
+	causticsMap = new Photon_map(10000000);
 	setPhotonMap(photonMap);
+	setCausticsMap(causticsMap);
 
    
 
@@ -86,13 +88,19 @@ Scene::raytraceImage(Camera *cam, Image *img)
 					shadeResult += hitInfo.material->shade(ray, hitInfo, *this);	
 
 					//Add indirect lighting
+					
 					float irrad[3] = { 0, 0, 0 };
 					float hitPoint[3] = { hitInfo.P.x, hitInfo.P.y, hitInfo.P.z };
 					float hitNormal[3] = { hitInfo.N.x, hitInfo.N.y, hitInfo.N.z };
-					photonMap->irradiance_estimate(irrad, hitPoint, hitNormal, 1.0f, 500);
+					photonMap->irradiance_estimate(irrad, hitPoint, hitNormal, 0.5f, 1000);
 					Vector3 irradVec(irrad[0], irrad[1], irrad[2]);
 					shadeResult += hitInfo.material->getKd()* irradVec;
 					
+					//Add caustics
+					float irradCaus[3] = { 0, 0, 0 };
+					causticsMap->irradiance_estimate(irradCaus, hitPoint, hitNormal, 0.5f, 1000);
+					Vector3 irradCausVec(irradCaus[0], irradCaus[1], irradCaus[2]);
+					shadeResult += irradCausVec;
 
 
 				}
@@ -160,12 +168,11 @@ Scene::setPhotonMap(Photon_map* photonMap){
 			float power[3] = { photonPow, photonPow, photonPow };
 			float pos[3] = { hitInfo.P.x, hitInfo.P.y, hitInfo.P.z };
 			float dir[3] = { photonDir.x, photonDir.y, photonDir.z };
-			//std::cout << photonDir << std::endl;
-			photonMap->store(power, pos, dir);
-			numPhotons++;
+			//photonMap->store(power, pos, dir);
+			//numPhotons++;
 
 			Vector3 currkd = hitInfo.material->getKd();
-			currkd *= photonPow;
+			currkd *=photonPow;
 			tracePhoton(hitInfo.P,hitInfo.N,currkd, 0, numPhotons);
 
 			/****FOR DEBUGGING PHOTONMAP**/
@@ -189,9 +196,67 @@ Scene::setPhotonMap(Photon_map* photonMap){
 
 }
 
+
+void
+Scene::setCausticsMap(Photon_map* photonMap){
+	//Assume one light source (lol)
+
+	int numPhotons = 0;
+	int maxPhotons = 50000;
+
+	Vector3 photonDir;
+
+	while (numPhotons < maxPhotons) {
+		do {
+			photonDir.x = 2.0f * ((float)rand() / (RAND_MAX)) - 1.0f;
+			photonDir.y = 2.0f * ((float)rand() / (RAND_MAX)) - 1.0f;
+			photonDir.z = 2.0f * ((float)rand() / (RAND_MAX)) - 1.0f;
+		} while ((photonDir.x*photonDir.x + photonDir.y*photonDir.y + photonDir.z*photonDir.z) > 1.0f);
+
+		Ray photonRay;
+		HitInfo hitInfo;
+		photonRay.o = m_lights[0]->position();
+		photonRay.d = photonDir;
+
+		if (trace(hitInfo, photonRay)) {
+			float photonPow = m_lights[0]->wattage();
+
+			float power[3] = { photonPow, photonPow, photonPow };
+			float pos[3] = { hitInfo.P.x, hitInfo.P.y, hitInfo.P.z };
+			float dir[3] = { photonDir.x, photonDir.y, photonDir.z };
+			//photonMap->store(power, pos, dir);
+			//numPhotons++;
+
+			Vector3 currkd = photonPow * hitInfo.material->getRefrac();
+			if (hitInfo.material->getRefrac() > 0.0f)
+				traceCausticPhoton(hitInfo.P, hitInfo.N, photonDir, currkd, 0, numPhotons);
+
+			/****FOR DEBUGGING PHOTONMAP**/
+			/*
+			Sphere *photonSphere = new Sphere();
+			photonSphere->setCenter(Vector3(pos[0], pos[1], pos[2]));
+			photonSphere->setRadius(0.05f);
+			photonDebug.push_back(photonSphere);
+			m_objects.push_back(photonSphere);
+			*/
+
+
+		}
+
+
+	}
+
+	photonMap->scale_photon_power(1.0f / maxPhotons);
+	photonMap->balance();
+
+
+}
+
+
+
 void
 Scene::tracePhoton(Vector3 pos, Vector3 norm, Vector3 pow, int depth, int &numPhotons) {
-	if (depth == 8) return;
+	//if (depth == 8) return;
 
 	/***Indirrect Diffuse Lighting**/
 	float theta, phi;
@@ -247,6 +312,106 @@ Scene::tracePhoton(Vector3 pos, Vector3 norm, Vector3 pow, int depth, int &numPh
 
 		currkd *= pow;
 		numPhotons++;
-		tracePhoton(hitRand.P, hitRand.N, currkd, depth+1,numPhotons) ;
+
+		Vector3 kd = hitRand.material->getKd();
+		float diffuseComp = kd.x + kd.y + kd.z / 765;
+		float diffRoulette = ((float)rand() / (RAND_MAX));
+
+		/*FOR DEBUGGING PURPOSES*/
+		/*
+		Sphere *photonSphere = new Sphere();
+		photonSphere->setCenter(Vector3(pos[0], pos[1], pos[2]));
+		photonSphere->setRadius(0.05f);
+		photonDebug.push_back(photonSphere);
+		m_objects.push_back(photonSphere);
+		*/
+
+		if (diffRoulette < diffuseComp) {
+			tracePhoton(hitRand.P, hitRand.N, currkd, depth + 1, numPhotons);
+		}
 	}
+}
+
+void
+Scene::traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, int depth, int &numPhotons) {
+	float n1 = 1.00029f;
+	float n2 = 1.6f;
+	float n = n1 / n2;
+
+	float nDotV = dot(-dir, norm);
+
+	if (nDotV <= 0) {
+		n = n2 / n1;
+		nDotV = dot(-dir, -norm);
+	}
+
+	float sinT2 = n * n * (1.0f - (nDotV*nDotV));
+
+	Vector3 refract;
+	if (dot(-dir, norm) > 0)
+		refract = -n*(-dir - nDotV*norm) - (sqrt(1.0f - sinT2)*norm);
+	else
+		refract = -n*(-dir - nDotV*-norm) - (sqrt(1.0f - sinT2)*-norm);
+
+	Vector3 reflection = -2 * dot(dir, norm) * norm + dir;
+
+	Ray ray2;
+	Ray ray3;
+	ray3.o = pos;
+	ray3.d = refract.normalize();
+
+	HitInfo stage2;
+	HitInfo stage3;
+	if (sinT2 > 1.0) {
+		if (nDotV > 0)
+			reflection = -2.0f * nDotV * norm + dir;
+		else
+			reflection = -2.0f * nDotV * -norm + dir;
+
+		ray2.o = pos;
+		ray2.d = reflection.normalize();
+		if (trace(stage2, ray2, 0.0001f, MIRO_TMAX)){
+			if (stage2.material->getRefrac() <= 0.0f) {
+				float hitPoint[3] = { stage2.P.x, stage2.P.y, stage2.P.z };
+				float direction[3] = { ray2.d.x, ray2.d.y, ray2.d.z };
+				float power[3] = { pow.x, pow.y, pow.z };
+				causticsMap->store(power, hitPoint, direction);
+				numPhotons++;
+
+				Sphere *photonSphere = new Sphere();
+				photonSphere->setCenter(stage2.P);
+				photonSphere->setRadius(0.05f);
+				photonDebug.push_back(photonSphere);
+				m_objects.push_back(photonSphere);
+			}
+			else
+				traceCausticPhoton(stage2.P, stage2.N, ray2.d, pow, 0, numPhotons);
+		}
+	}
+	else if (trace(stage3, ray3, 0.0001f, MIRO_TMAX)){
+		if (stage3.material->getRefrac() <= 0.0f) {
+			float hitPoint[3] = { stage3.P.x, stage3.P.y, stage3.P.z };
+			float power[3] = { pow.x, pow.y, pow.z };
+			float direction[3] = { ray3.d.x, ray3.d.y, ray3.d.z };
+			causticsMap->store(power, hitPoint, direction);
+			numPhotons++;
+
+			Sphere *photonSphere = new Sphere();
+			photonSphere->setCenter(stage3.P);
+			photonSphere->setRadius(0.05f);
+			photonDebug.push_back(photonSphere);
+			m_objects.push_back(photonSphere);
+		}
+		else
+			traceCausticPhoton(stage3.P, stage3.N, ray3.d, pow, 0, numPhotons);
+
+	}
+		/*FOR DEBUGGING PURPOSES*/
+		/*
+		Sphere *photonSphere = new Sphere();
+		photonSphere->setCenter(Vector3(pos[0], pos[1], pos[2]));
+		photonSphere->setRadius(0.05f);
+		photonDebug.push_back(photonSphere);
+		m_objects.push_back(photonSphere);
+		*/
 }

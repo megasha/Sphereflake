@@ -29,6 +29,7 @@ public:
 	void setRefrac(const float &r) { m_refrac = r; }
 
 	virtual Vector3 getKd() { return m_kd; }
+	virtual float getRefrac() { return m_refrac; }
     virtual void preCalc() {}
     
     virtual Vector3 shade(const Ray& ray, const HitInfo& hit,
