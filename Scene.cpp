@@ -49,7 +49,7 @@ Scene::preCalc()
 	photonMap = new Photon_map(10000000);
 	causticsMap = new Photon_map(10000000);
 	setPhotonMap(photonMap);
-	setCausticsMap(causticsMap);
+	//setCausticsMap(causticsMap);
 
    
 
