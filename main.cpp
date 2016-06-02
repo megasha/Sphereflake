@@ -66,6 +66,13 @@ void myScene(){
 
 	}
 
+	/*
+	BBox *squareLight = new BBox(Vector3(2.75f,5.45f,-2.75f), 2.0f);
+	Material *squareMat = new Lambert(Vector3(0.0f), Vector3(0.0f), Vector3(1.0f));
+	squareLight->setMaterial(squareMat);
+	g_scene->addObject(squareLight);
+	*/
+
 	Material* matSphere = new Lambert(Vector3(0.5f,0.0f,0.0f), Vector3(1.0f,1.0f,1.0f), Vector3(0.0f), 0, 0, 0.5f);
 	Material* matSphere1 = new Lambert(Vector3(0.0f,0.0f,0.5f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.5f);
 
@@ -88,7 +95,7 @@ void myScene(){
 }
 
 void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matrix4x4 currMat, int depth) {
-	if (depth > 1) return;
+	if (depth > 3) return;
 
 	float newRad = radius / 4;
 	float offset = 30.0f;
@@ -252,7 +259,7 @@ sphereFlake() {
 	g_image = new Image;
 
 	g_image->resize(512, 512);
-	g_scene->setSamples(10);
+	g_scene->setSamples(100);
 
 
 	// set up the camera
@@ -266,7 +273,7 @@ sphereFlake() {
 	PointLight * light = new PointLight;
 	light->setPosition(Vector3(0.0f, 2.7f, 0.0f));
 	light->setColor(Vector3(1, 1, 1));
-	light->setWattage(75);
+	light->setWattage(50);
 	g_scene->addLight(light);
 
 	Matrix4x4 trans;
@@ -316,6 +323,79 @@ sphereFlake() {
 	g_scene->preCalc();
 }
 
+void
+newFlakeScene() {
+	g_camera = new Camera;
+	g_scene = new Scene;
+	g_image = new Image;
+
+	g_image->resize(512, 512);
+	g_scene->setSamples(5);
+
+
+	// set up the camera
+	g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
+	g_camera->setEye(Vector3(0.0f, 0.0f, 8.25f));
+	g_camera->setLookAt(Vector3(0.0f, 0.0f, -1));
+	g_camera->setUp(Vector3(0, 1, 0));
+	g_camera->setFOV(55);
+
+	// create and place a point light source
+	PointLight * light = new PointLight;
+	light->setPosition(Vector3(0.0f, 2.5f, 1.0f));
+	light->setColor(Vector3(1, 1, 1));
+	light->setWattage(100);
+	g_scene->addLight(light);
+
+	Matrix4x4 trans;
+	trans = translate(-5.5f, -4.5f, 5.75f);
+	TriangleMesh * cornell = new TriangleMesh;
+	cornell->load("models/just_wall.obj", trans);
+
+	Material* white = new Lambert(Vector3(1.0f));
+	Material* red = new Lambert(Vector3(1.0f, 0.0f, 0.0f));
+	Material* green = new Lambert(Vector3(0.0f, 1.0f, 0.0f));
+
+	// create all the triangles in the bunny mesh and add to the scene
+	for (int i = 0; i < cornell->numTris(); ++i)
+	{
+		Triangle* t = new Triangle;
+		t->setIndex(i);
+		t->setMesh(cornell);
+		t->setMaterial(white);
+		//if (i == 2 || i == 3) t->setMaterial(red);
+		//if (i == 0 || i == 1) t->setMaterial(green);
+		g_scene->addObject(t);
+
+	}
+
+	Material* matSphere = new Lambert(Vector3(0.0f, 0.0f, 0.0f), Vector3(1.0f), Vector3(0.0f, 0.0f, 0.0f), 0, 0, 1.0f);
+
+	float rand0 = ((float)rand() / (RAND_MAX));
+	float rand1 = ((float)rand() / (RAND_MAX));
+	float rand2 = ((float)rand() / (RAND_MAX));
+	Material* matSphere1 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
+
+
+	
+	Vector3 position(Vector3(0.0f));
+	float radius = 1.25f;
+	Sphere * sphere = new Sphere;
+	sphere->setCenter(position);
+	sphere->setRadius(radius);
+	sphere->setMaterial(matSphere1);
+	g_scene->addObject(sphere);
+
+	Matrix4x4 xform;
+	xform.setIdentity();
+
+	branch(position, radius, g_scene, matSphere1, xform, 0);
+	
+
+	// let objects do pre-calculations if needed
+	g_scene->preCalc();
+}
+
 int
 main(int argc, char*argv[])
 {
@@ -337,6 +417,7 @@ main(int argc, char*argv[])
 
 	//myScene();
 	sphereFlake();
+	//newFlakeScene();
 
 
     MiroWindow miro(&argc, argv);

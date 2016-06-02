@@ -4,6 +4,14 @@
 #include <limits>
 #include <queue>
 
+BBox::BBox(Vector3 center, float length) {
+	leftBox = nullptr;
+	rightBox = nullptr;
+	float halfLength = length / 2.0f;
+	min = Vector3(center.x - halfLength, center.y+2.0f , center.z - halfLength);
+	max = Vector3(center.x + halfLength, center.y+3.0f, center.z + halfLength);
+}
+
 BBox::BBox(Vector3 cMin, Vector3 cMax, Objects o) :
 min(cMin), max(cMax), complex_objects(o), leaf(true)
 {
@@ -97,7 +105,7 @@ BBox::intersect(HitInfo& result, const Ray& r, unsigned int &bCount, unsigned in
 	if (currMin <= currMax) {
 		result.t = currMin;
 		result.P = r.o + result.t*r.d;
-
+		result.material = m_material;
 		//Add Material??
 		bCount++;
 		return true;

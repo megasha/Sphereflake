@@ -213,13 +213,11 @@ Scene::setPhotonMap(Photon_map* photonMap){
 
 void
 Scene::setCausticsMap(Photon_map* photonMap){
-	//Assume one light source (lol)
-
 	std::queue<CausticTraceUnit> CausticQueue;
 
 	int numPhotons = 0;
 	int initialHits = 0;
-	int maxPhotons = 50000;
+	int maxPhotons = 25000;
 
 	Vector3 photonDir;
 
@@ -254,6 +252,7 @@ Scene::setCausticsMap(Photon_map* photonMap){
 				temp.pow = currkd;
 				temp.dist = 0;
 				temp.oldHit = hitInfo;
+				temp.depth = 0;
 				CausticQueue.push(temp);
 				initialHits++;
 			}
@@ -271,9 +270,11 @@ Scene::setCausticsMap(Photon_map* photonMap){
 		}
 	}
 
+	std::cout << "FINISHED EMITTING STUFF" << std::endl;
+
 	while (!CausticQueue.empty()) {
 		CausticTraceUnit temp = CausticQueue.front();
-		traceCausticPhoton(temp.pos, temp.norm, temp.dir, temp.pow, CausticQueue, numPhotons, temp.dist, temp.oldHit);
+		traceCausticPhoton(temp.pos, temp.norm, temp.dir, temp.pow, CausticQueue, numPhotons, temp.dist, temp.oldHit, temp.depth);
 		CausticQueue.pop();
 	}
 
@@ -364,7 +365,11 @@ Scene::tracePhoton(Vector3 pos, Vector3 norm, Vector3 pow, int depth, int &numPh
 }
 
 void
-Scene::traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, std::queue<CausticTraceUnit> &CausticQueue, int &numPhotons, float dist, HitInfo oldHit) {
+Scene::traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, std::queue<CausticTraceUnit> &CausticQueue, int &numPhotons, float dist, HitInfo oldHit, int depth) {
+	if (depth > 100000) {
+		std::cout << "EXITING CAUSTIC PHOTON" << std::endl;
+		return;
+	}
 	float n1 = 1.00029f;
 	float n2 = 1.6f;
 	float n = n1 / n2;
@@ -429,6 +434,7 @@ Scene::traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, s
 				temp.pow = pow*stage2.material->getRefrac();
 				temp.dist = (pos - stage2.P).length();
 				temp.oldHit = stage2;
+				temp.depth = depth+1;
 
 				if (stage2.material != oldHit.material) {
 					temp.pow *= Vector3(1.0f) - oldHit.material->getKd();
@@ -466,6 +472,7 @@ Scene::traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, s
 			temp.pow = pow*stage3.material->getRefrac();
 			temp.dist = (pos - stage3.P).length();
 			temp.oldHit = stage3;
+			temp.depth = depth + 1;
 
 			if (stage3.material != oldHit.material) {
 				temp.pow *= Vector3(1.0f) - oldHit.material->getKd();

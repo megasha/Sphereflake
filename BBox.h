@@ -7,6 +7,7 @@
 class BBox : public Object
 {
 public:
+	BBox(Vector3 center, float length);
 	BBox(Vector3 cMin, Vector3 cMax, Objects o);
 	BBox(Vector3 cMin, Vector3 cMax, Object *o);
 	~BBox();
@@ -16,7 +17,7 @@ public:
 	virtual Vector3 getCenter() { return ((max - min) / 2.0f) + min; }
 	virtual void renderGL();
 	bool isLeaf() { return leaf; }
-	bool intersect(HitInfo& result, const Ray& ray, unsigned int &bCount, unsigned int &tCount, float tMin = 0.0f, float tMax = MIRO_TMAX);
+	virtual bool intersect(HitInfo& result, const Ray& ray, unsigned int &bCount, unsigned int &tCount, float tMin = 0.0f, float tMax = MIRO_TMAX);
 	int getNumChildren() { return complex_objects.size(); }
 	bool bvhIntersect(HitInfo& result, const Ray& ray, unsigned int &bCount, unsigned int &tCount,
 		float tMin = 0.0f, float tMax = MIRO_TMAX);
