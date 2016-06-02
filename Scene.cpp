@@ -32,6 +32,8 @@ Scene::openGL(Camera *cam)
 void
 Scene::preCalc()
 {
+
+	std::cout << "Rendering " << m_objects.size() << " objects" << std::endl;
     Objects::iterator it;
     for (it = m_objects.begin(); it != m_objects.end(); it++)
     {
@@ -48,8 +50,20 @@ Scene::preCalc()
 
 	photonMap = new Photon_map(10000000);
 	causticsMap = new Photon_map(10000000);
+
+	std::clock_t start;
+	double duration;
+	start = std::clock();
+
+	std::cout << "Setting global photon map" << std::endl;
 	setPhotonMap(photonMap);
-	//setCausticsMap(causticsMap);
+	std::cout << "Setting caustic photon map" << std::endl;
+	setCausticsMap(causticsMap);
+	std::cout << "End setup" << std::endl;
+
+	std::cout << "\nPhotonMap Duration: " << duration << " seconds" << std::endl;
+	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+
 
    
 
@@ -201,12 +215,15 @@ void
 Scene::setCausticsMap(Photon_map* photonMap){
 	//Assume one light source (lol)
 
+	std::queue<CausticTraceUnit> CausticQueue;
+
 	int numPhotons = 0;
+	int initialHits = 0;
 	int maxPhotons = 50000;
 
 	Vector3 photonDir;
 
-	while (numPhotons < maxPhotons) {
+	while (initialHits < maxPhotons) {
 		do {
 			photonDir.x = 2.0f * ((float)rand() / (RAND_MAX)) - 1.0f;
 			photonDir.y = 2.0f * ((float)rand() / (RAND_MAX)) - 1.0f;
@@ -228,8 +245,18 @@ Scene::setCausticsMap(Photon_map* photonMap){
 			//numPhotons++;
 
 			Vector3 currkd = photonPow * hitInfo.material->getRefrac();
-			if (hitInfo.material->getRefrac() > 0.0f)
-				traceCausticPhoton(hitInfo.P, hitInfo.N, photonDir, currkd, 0, numPhotons);
+			if (hitInfo.material->getRefrac() > 0.0f) {
+				//traceCausticPhoton(hitInfo.P, hitInfo.N, photonDir, currkd, 0, numPhotons);
+				CausticTraceUnit temp;
+				temp.pos = hitInfo.P;
+				temp.norm = hitInfo.N;
+				temp.dir = photonDir;
+				temp.pow = currkd;
+				temp.dist = 0;
+				temp.oldHit = hitInfo;
+				CausticQueue.push(temp);
+				initialHits++;
+			}
 
 			/****FOR DEBUGGING PHOTONMAP**/
 			/*
@@ -242,8 +269,12 @@ Scene::setCausticsMap(Photon_map* photonMap){
 
 
 		}
+	}
 
-
+	while (!CausticQueue.empty()) {
+		CausticTraceUnit temp = CausticQueue.front();
+		traceCausticPhoton(temp.pos, temp.norm, temp.dir, temp.pow, CausticQueue, numPhotons, temp.dist, temp.oldHit);
+		CausticQueue.pop();
 	}
 
 	photonMap->scale_photon_power(1.0f / maxPhotons);
@@ -314,7 +345,7 @@ Scene::tracePhoton(Vector3 pos, Vector3 norm, Vector3 pow, int depth, int &numPh
 		numPhotons++;
 
 		Vector3 kd = hitRand.material->getKd();
-		float diffuseComp = kd.x + kd.y + kd.z / 765;
+		float diffuseComp = (kd.x + kd.y + kd.z) / 3.0f;
 		float diffRoulette = ((float)rand() / (RAND_MAX));
 
 		/*FOR DEBUGGING PURPOSES*/
@@ -333,7 +364,7 @@ Scene::tracePhoton(Vector3 pos, Vector3 norm, Vector3 pow, int depth, int &numPh
 }
 
 void
-Scene::traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, int depth, int &numPhotons) {
+Scene::traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, std::queue<CausticTraceUnit> &CausticQueue, int &numPhotons, float dist, HitInfo oldHit) {
 	float n1 = 1.00029f;
 	float n2 = 1.6f;
 	float n = n1 / n2;
@@ -372,38 +403,75 @@ Scene::traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, i
 		ray2.d = reflection.normalize();
 		if (trace(stage2, ray2, 0.0001f, MIRO_TMAX)){
 			if (stage2.material->getRefrac() <= 0.0f) {
+				Vector3 mat = Vector3(1.0f) - oldHit.material->getKd();
+				mat *= -dist;
+				mat = Vector3(expf(mat.x), expf(mat.y), expf(mat.z));
 				float hitPoint[3] = { stage2.P.x, stage2.P.y, stage2.P.z };
 				float direction[3] = { ray2.d.x, ray2.d.y, ray2.d.z };
-				float power[3] = { pow.x, pow.y, pow.z };
+				float power[3] = { mat.x*pow.x, mat.y*pow.y, mat.z*pow.z };
 				causticsMap->store(power, hitPoint, direction);
 				numPhotons++;
 
+				/*
 				Sphere *photonSphere = new Sphere();
 				photonSphere->setCenter(stage2.P);
 				photonSphere->setRadius(0.05f);
 				photonDebug.push_back(photonSphere);
 				m_objects.push_back(photonSphere);
+				*/
 			}
-			else
-				traceCausticPhoton(stage2.P, stage2.N, ray2.d, pow, 0, numPhotons);
+			else {
+				//traceCausticPhoton(stage2.P, stage2.N, ray2.d, pow, 0, numPhotons);
+				CausticTraceUnit temp;
+				temp.pos = stage2.P;
+				temp.norm = stage2.N;
+				temp.dir = ray2.d;
+				temp.pow = pow*stage2.material->getRefrac();
+				temp.dist = (pos - stage2.P).length();
+				temp.oldHit = stage2;
+
+				if (stage2.material != oldHit.material) {
+					temp.pow *= Vector3(1.0f) - oldHit.material->getKd();
+				}
+				CausticQueue.push(temp);
+			}
 		}
 	}
 	else if (trace(stage3, ray3, 0.0001f, MIRO_TMAX)){
 		if (stage3.material->getRefrac() <= 0.0f) {
+			Vector3 mat = Vector3(1.0f) - oldHit.material->getKd();
+			mat *= -dist;
+			mat = Vector3(expf(mat.x), expf(mat.y), expf(mat.z));
+
 			float hitPoint[3] = { stage3.P.x, stage3.P.y, stage3.P.z };
-			float power[3] = { pow.x, pow.y, pow.z };
+			float power[3] = { mat.x*pow.x, mat.y*pow.y, mat.z*pow.z };
 			float direction[3] = { ray3.d.x, ray3.d.y, ray3.d.z };
 			causticsMap->store(power, hitPoint, direction);
 			numPhotons++;
 
+			/*
 			Sphere *photonSphere = new Sphere();
 			photonSphere->setCenter(stage3.P);
 			photonSphere->setRadius(0.05f);
 			photonDebug.push_back(photonSphere);
 			m_objects.push_back(photonSphere);
+			*/
 		}
-		else
-			traceCausticPhoton(stage3.P, stage3.N, ray3.d, pow, 0, numPhotons);
+		else {
+			//traceCausticPhoton(stage3.P, stage3.N, ray3.d, pow, 0, numPhotons);
+			CausticTraceUnit temp;
+			temp.pos = stage3.P;
+			temp.norm = stage3.N;
+			temp.dir = ray3.d;
+			temp.pow = pow*stage3.material->getRefrac();
+			temp.dist = (pos - stage3.P).length();
+			temp.oldHit = stage3;
+
+			if (stage3.material != oldHit.material) {
+				temp.pow *= Vector3(1.0f) - oldHit.material->getKd();
+			}
+			CausticQueue.push(temp);
+		}
 
 	}
 		/*FOR DEBUGGING PURPOSES*/

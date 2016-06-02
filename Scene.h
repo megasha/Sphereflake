@@ -6,9 +6,20 @@
 #include "PointLight.h"
 #include "BVH.h"
 #include "photonmap.h"
+#include <queue>
+#include "Ray.h"
 
 class Camera;
 class Image;
+
+struct CausticTraceUnit{
+	Vector3 pos;
+	Vector3 norm;
+	Vector3 dir;
+	Vector3 pow;
+	float dist;
+	HitInfo oldHit;
+};
 
 class Scene
 {
@@ -34,7 +45,7 @@ public:
 	void setPhotonMap(Photon_map*);
 	void setCausticsMap(Photon_map*);
 	void tracePhoton(Vector3 pos, Vector3 norm, Vector3 pow, int depth, int &numPhotons);
-	void traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, int depth, int &numPhotons);
+	void traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, std::queue<CausticTraceUnit> &, int &numPhotons, float dist,HitInfo oldHit);
 
 	Photon_map *photonMap;
 	Photon_map *causticsMap;

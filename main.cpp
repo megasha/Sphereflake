@@ -66,7 +66,9 @@ void myScene(){
 
 	}
 
-	Material* matSphere = new Lambert(Vector3(0.0f), Vector3(1.0f,1.0f,1.0f), Vector3(0.0f), 0, 0, 1.0f);
+	Material* matSphere = new Lambert(Vector3(0.5f,0.0f,0.0f), Vector3(1.0f,1.0f,1.0f), Vector3(0.0f), 0, 0, 0.5f);
+	Material* matSphere1 = new Lambert(Vector3(0.0f,0.0f,0.5f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.5f);
+
 
 
 	Sphere * sphere = new Sphere;
@@ -78,7 +80,7 @@ void myScene(){
 	Sphere * sphere1 = new Sphere;
 	sphere1->setCenter(Vector3(4.0, 1, -1.5));
 	sphere1->setRadius(1);
-	sphere1->setMaterial(matSphere);
+	sphere1->setMaterial(matSphere1);
 	g_scene->addObject(sphere1);
 
 	// let objects do pre-calculations if needed
@@ -86,12 +88,17 @@ void myScene(){
 }
 
 void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matrix4x4 currMat, int depth) {
-	if (depth > 3) return;
+	if (depth > 1) return;
 
 	float newRad = radius / 4;
 	float offset = 30.0f;
 
 	Matrix4x4 xform;
+
+	float rand0 = ((float)rand() / (RAND_MAX));
+	float rand1 = ((float)rand() / (RAND_MAX));
+	float rand2 = ((float)rand() / (RAND_MAX));
+	Material* matSphere0 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
 
 	//Add sphere0
 	xform = currMat;
@@ -100,10 +107,15 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	Sphere * sphere0 = new Sphere;
 	sphere0->setCenter(xform*pos);
 	sphere0->setRadius(newRad);
-	sphere0->setMaterial(matSphere);
+	sphere0->setMaterial(matSphere0);
 	g_scene->addObject(sphere0);
 	xform *= rotate(90.0f, 0, 0, 1.0f);
 	branch(pos, newRad, g_scene, matSphere, xform, depth + 1);
+
+	rand0 = ((float)rand() / (RAND_MAX));
+	rand1 = ((float)rand() / (RAND_MAX));
+	rand2 = ((float)rand() / (RAND_MAX));
+	Material* matSphere1 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
 
 	//Add sphere1
 	xform = currMat;
@@ -113,10 +125,15 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	Sphere * sphere1 = new Sphere;
 	sphere1->setCenter(xform*pos);
 	sphere1->setRadius(newRad);
-	sphere1->setMaterial(matSphere);
+	sphere1->setMaterial(matSphere1);
 	g_scene->addObject(sphere1);
 	xform *= rotate(90.0f, 0, 0, 1.0f);
 	branch(pos, newRad, g_scene, matSphere, xform,depth+1);
+
+	rand0 = ((float)rand() / (RAND_MAX));
+	rand1 = ((float)rand() / (RAND_MAX));
+	rand2 = ((float)rand() / (RAND_MAX));
+	Material* matSphere2 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
 
 
 	//Add sphere2
@@ -127,11 +144,15 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	Sphere * sphere2 = new Sphere;
 	sphere2->setCenter(xform*pos);
 	sphere2->setRadius(newRad);
-	sphere2->setMaterial(matSphere);
+	sphere2->setMaterial(matSphere2);
 	g_scene->addObject(sphere2);
 	xform *= rotate(90.0f, 0, 0, 1.0f);
 	branch(pos, newRad, g_scene, matSphere, xform, depth + 1);
 
+	rand0 = ((float)rand() / (RAND_MAX));
+	rand1 = ((float)rand() / (RAND_MAX));
+	rand2 = ((float)rand() / (RAND_MAX));
+	Material* matSphere3 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
 
 	//Add sphere3
 	xform = currMat;
@@ -141,12 +162,15 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	Sphere * sphere3 = new Sphere;
 	sphere3->setCenter(xform*pos);
 	sphere3->setRadius(newRad);
-	sphere3->setMaterial(matSphere);
+	sphere3->setMaterial(matSphere3);
 	g_scene->addObject(sphere3);
 	xform *= rotate(90.0f, 0, 0, 1.0f);
 	branch(pos, newRad, g_scene, matSphere, xform, depth + 1);
 
-
+	rand0 = ((float)rand() / (RAND_MAX));
+	rand1 = ((float)rand() / (RAND_MAX));
+	rand2 = ((float)rand() / (RAND_MAX));
+	Material* matSphere4 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
 	
 
 	//Add sphere4
@@ -157,11 +181,15 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	Sphere * sphere4 = new Sphere;
 	sphere4->setCenter(xform*pos);
 	sphere4->setRadius(newRad);
-	sphere4->setMaterial(matSphere);
+	sphere4->setMaterial(matSphere4);
 	g_scene->addObject(sphere4);
 	xform *= rotate(90.0f, 0, 0, 1.0f);
 	branch(pos, newRad, g_scene, matSphere, xform, depth + 1);
 
+	rand0 = ((float)rand() / (RAND_MAX));
+	rand1 = ((float)rand() / (RAND_MAX));
+	rand2 = ((float)rand() / (RAND_MAX));
+	Material* matSphere5 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
 
 	//Add sphere5
 	xform = currMat;
@@ -171,12 +199,15 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	Sphere * sphere5 = new Sphere;
 	sphere5->setCenter(xform*pos);
 	sphere5->setRadius(newRad);
-	sphere5->setMaterial(matSphere);
+	sphere5->setMaterial(matSphere5);
 	g_scene->addObject(sphere5);
 	xform *= rotate(90.0f, 0, 0, 1.0f);
 	branch(pos, newRad, g_scene, matSphere, xform, depth + 1);
 
-
+	rand0 = ((float)rand() / (RAND_MAX));
+	rand1 = ((float)rand() / (RAND_MAX));
+	rand2 = ((float)rand() / (RAND_MAX));
+	Material* matSphere6 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
 	
 	//Add sphere6
 	xform = currMat;
@@ -186,11 +217,15 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	Sphere * sphere6 = new Sphere;
 	sphere6->setCenter(xform*pos);
 	sphere6->setRadius(newRad);
-	sphere6->setMaterial(matSphere);
+	sphere6->setMaterial(matSphere6);
 	g_scene->addObject(sphere6);
 	xform *= rotate(90.0f, 0, 0, 1.0f);
 	branch(pos, newRad, g_scene, matSphere, xform, depth + 1);
 
+	rand0 = ((float)rand() / (RAND_MAX));
+	rand1 = ((float)rand() / (RAND_MAX));
+	rand2 = ((float)rand() / (RAND_MAX));
+	Material* matSphere7 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
 
 	//Add sphere7
 	xform = currMat;
@@ -200,7 +235,7 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	Sphere * sphere7 = new Sphere;
 	sphere7->setCenter(xform*pos);
 	sphere7->setRadius(newRad);
-	sphere7->setMaterial(matSphere);
+	sphere7->setMaterial(matSphere7);
 	g_scene->addObject(sphere7);
 	xform *= rotate(90.0f, 0, 0, 1.0f);
 	branch(pos, newRad, g_scene, matSphere, xform, depth + 1);
@@ -250,26 +285,32 @@ sphereFlake() {
 		t->setIndex(i);
 		t->setMesh(cornell);
 		t->setMaterial(white);
-		if (i == 2 || i == 3) t->setMaterial(red);
-		if (i == 0 || i == 1) t->setMaterial(green);
+		//if (i == 2 || i == 3) t->setMaterial(red);
+		//if (i == 0 || i == 1) t->setMaterial(green);
 		g_scene->addObject(t);
 
 	}
 
-	Material* matSphere = new Lambert(Vector3(0.0f,0.0f,0.8f),Vector3(0.0f),Vector3(0.2f,0.2f,0.2f));
+	Material* matSphere = new Lambert(Vector3(0.0f,0.0f,0.0f),Vector3(1.0f),Vector3(0.0f,0.0f,0.0f),0,0,1.0f);
+
+	float rand0 = ((float)rand() / (RAND_MAX));
+	float rand1 = ((float)rand() / (RAND_MAX));
+	float rand2 = ((float)rand() / (RAND_MAX));
+	Material* matSphere1 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
+
 
 	Vector3 position(Vector3(0.0f));
 	float radius = 1.25f;
 	Sphere * sphere = new Sphere;
 	sphere->setCenter(position);
 	sphere->setRadius(radius);
-	sphere->setMaterial(matSphere);
+	sphere->setMaterial(matSphere1);
 	g_scene->addObject(sphere);
 
 	Matrix4x4 xform;
 	xform.setIdentity();
 
-	branch(position, radius,g_scene,matSphere, xform,0);
+	branch(position, radius,g_scene,matSphere1, xform,0);
 
 	// let objects do pre-calculations if needed
 	g_scene->preCalc();
