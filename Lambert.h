@@ -11,7 +11,8 @@ public:
             const Vector3 & ka = Vector3(0),
 			const bool & texture = 0,
 			const float & reflec = 0,
-			const float & refrac = 0);
+			const float & refrac = 0,
+			const Vector3 & glass = Vector3(0));
     virtual ~Lambert();
 
 	const Vector3 & kd() const { return m_kd; }
@@ -29,6 +30,7 @@ public:
 	void setRefrac(const float &r) { m_refrac = r; }
 
 	virtual Vector3 getKd() { return m_kd; }
+	virtual Vector3 getGlass() { return m_glass; }
 	virtual float getRefrac() { return m_refrac; }
     virtual void preCalc() {}
     
@@ -38,6 +40,7 @@ protected:
 	Vector3 m_ks;
     Vector3 m_kd;
     Vector3 m_ka;
+	Vector3 m_glass;
 	bool m_texture;
 	float m_reflec;
 	float m_refrac;

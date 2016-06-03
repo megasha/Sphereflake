@@ -58,7 +58,7 @@ Scene::preCalc()
 	std::cout << "Setting global photon map" << std::endl;
 	setPhotonMap(photonMap);
 	std::cout << "Setting caustic photon map" << std::endl;
-	//setCausticsMap(causticsMap);
+	setCausticsMap(causticsMap);
 	std::cout << "End setup" << std::endl;
 
 	std::cout << "\nPhotonMap Duration: " << duration << " seconds" << std::endl;
@@ -438,7 +438,7 @@ Scene::traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, s
 		ray2.d = reflection.normalize();
 		if (trace(stage2, ray2, 0.0001f, MIRO_TMAX)){
 			if (stage2.material->getRefrac() <= 0.0f) {
-				Vector3 mat = Vector3(1.0f) - oldHit.material->getKd();
+				Vector3 mat = Vector3(1.0f) - oldHit.material->getGlass();
 				mat *= -dist;
 				mat = Vector3(expf(mat.x), expf(mat.y), expf(mat.z));
 				float hitPoint[3] = { stage2.P.x, stage2.P.y, stage2.P.z };
@@ -467,7 +467,7 @@ Scene::traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, s
 				temp.depth = depth+1;
 
 				if (stage2.material != oldHit.material) {
-					temp.pow *= Vector3(1.0f) - oldHit.material->getKd();
+					temp.pow *= Vector3(1.0f) - oldHit.material->getGlass();
 				}
 				CausticQueue.push(temp);
 			}
@@ -475,7 +475,7 @@ Scene::traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, s
 	}
 	else if (trace(stage3, ray3, 0.0001f, MIRO_TMAX)){
 		if (stage3.material->getRefrac() <= 0.0f) {
-			Vector3 mat = Vector3(1.0f) - oldHit.material->getKd();
+			Vector3 mat = Vector3(1.0f) - oldHit.material->getGlass();
 			mat *= -dist;
 			mat = Vector3(expf(mat.x), expf(mat.y), expf(mat.z));
 
@@ -485,13 +485,13 @@ Scene::traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, s
 			causticsMap->store(power, hitPoint, direction);
 			numPhotons++;
 
-			/*
+			
 			Sphere *photonSphere = new Sphere();
 			photonSphere->setCenter(stage3.P);
 			photonSphere->setRadius(0.05f);
 			photonDebug.push_back(photonSphere);
 			m_objects.push_back(photonSphere);
-			*/
+			
 		}
 		else {
 			//traceCausticPhoton(stage3.P, stage3.N, ray3.d, pow, 0, numPhotons);

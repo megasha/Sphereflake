@@ -77,8 +77,8 @@ void myScene(){
 	g_scene->addObject(squareLight);
 	*/
 
-	Material* matSphere = new Lambert(Vector3(0.0f,0.0f,0.0f), Vector3(1.0f,1.0f,1.0f), Vector3(0.0f), 0, 0, 1.0f);
-	Material* matSphere1 = new Lambert(Vector3(0.0f,0.0f,0.0f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 1.f);
+	Material* matSphere = new Lambert(Vector3(0.0f, 0.0f, 0.0f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 1.0f, Vector3(0.2f, 0.0f, 0.0f));
+	Material* matSphere1 = new Lambert(Vector3(0.0f, 0.0f, 0.0f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 1.0f, Vector3(0.0f, 0.0f, 0.2f));
 
 
 
@@ -277,7 +277,7 @@ sphereFlake() {
 	PointLight * light = new PointLight;
 	light->setPosition(Vector3(0.0f, 2.7f, 0.0f));
 	light->setColor(Vector3(1, 1, 1));
-	light->setWattage(50);
+	light->setWattage(25);
 	g_scene->addLight(light);
 
 	Matrix4x4 trans;
@@ -307,7 +307,7 @@ sphereFlake() {
 	float rand0 = ((float)rand() / (RAND_MAX));
 	float rand1 = ((float)rand() / (RAND_MAX));
 	float rand2 = ((float)rand() / (RAND_MAX));
-	Material* matSphere1 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
+	Material* matSphere1 = new Lambert(Vector3(rand0,rand1,rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
 
 
 	Vector3 position(Vector3(0.0f));

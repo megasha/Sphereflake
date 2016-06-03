@@ -10,8 +10,8 @@ std::default_random_engine gen;
 std::uniform_real_distribution<float> dist(0, 1);
 
 Lambert::Lambert(const Vector3 & kd, const Vector3 & ks, const Vector3 & ka,
-	const bool & texture, const float & reflec, const float & refrac) :
-	m_kd(kd), m_ks(ks), m_ka(ka), m_texture(texture), m_reflec(reflec), m_refrac(refrac)
+	const bool & texture, const float & reflec, const float & refrac, const Vector3 & glass) :
+	m_kd(kd), m_ks(ks), m_ka(ka), m_texture(texture), m_reflec(reflec), m_refrac(refrac), m_glass(glass)
 {
 }
 
@@ -81,6 +81,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 		float irradiance = nDotL / falloff * pLight->wattage() / (2.0f*PI);
 
 
+
 		//Compute phong highlight
 		Vector3 reflection = -2 * dot(l, hit.N) * hit.N + l;
 		reflection.normalize();
@@ -96,9 +97,12 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 		
 		if (scene.trace(shadow_hit, shadow_ray, 0.001f, sqrt(falloff))){}
 		else {
-			L += std::max(0.0f, irradiance) * result;
+			if (m_refrac <= 0.0f)
+				L += std::max(0.0f, irradiance) * result;
+
 			L += m_ks * pHighlight*std::max(0.0f, irradiance);
 		}
+
 	
     }
 
@@ -209,6 +213,13 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 			ray2.rayNum = ray.rayNum + 1;
 			if (scene.trace(stage2, ray2, 0.0001f, MIRO_TMAX)){
 				L += m_refrac * stage2.material->shade(ray2, stage2, scene);
+				
+				if (hit.material == stage2.material) {
+					Vector3 absorbance = stage2.material->getGlass()* (stage2.P - ray2.o).length();
+					absorbance = Vector3(expf(absorbance.x), expf(absorbance.y), expf(absorbance.z));
+					L += stage2.material->getGlass() * absorbance;
+				}
+
 
 				//Add indirect lighting to refraction
 				float irrad[3] = { 0, 0, 0 };
@@ -216,10 +227,21 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 				float hitNormal[3] = { stage2.N.x, stage2.N.y, stage2.N.z };
 				scene.photonMap->irradiance_estimate(irrad, hitPoint, hitNormal, 0.5f, 1000);
 				L += stage2.material->getKd()*Vector3(irrad[0], irrad[1], irrad[2]);
+
+				//Add indirect beer?
+				if (hit.material == stage2.material) {
+					//L += stage2.material->getGlass()*Vector3(irrad[0], irrad[1], irrad[2]);
+				}
 			}
 		}
 		else if (scene.trace(stage3, ray3, 0.0001f, MIRO_TMAX)){
 			L += m_refrac * stage3.material->shade(ray3, stage3, scene);
+
+			if (hit.material == stage3.material) {
+				Vector3 absorbance = stage3.material->getGlass() * (stage3.P-ray3.o).length();
+				absorbance = Vector3(expf(absorbance.x), expf(absorbance.y), expf(absorbance.z));
+				L += stage3.material->getGlass() * absorbance;
+			}
 
 			//Add indirect lighting to refraction
 			float irrad[3] = { 0, 0, 0 };
@@ -227,6 +249,11 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 			float hitNormal[3] = { stage3.N.x, stage3.N.y, stage3.N.z };
 			scene.photonMap->irradiance_estimate(irrad, hitPoint, hitNormal, 0.5f, 1000);
 			L += stage3.material->getKd()*Vector3(irrad[0], irrad[1], irrad[2]);
+
+			//Add indirect beer?
+			if (hit.material == stage3.material) {
+				//L += stage3.material->getGlass()*Vector3(irrad[0], irrad[1], irrad[2]);
+			}
 		}
 		else L += m_refrac *scene.bg();
 	}
