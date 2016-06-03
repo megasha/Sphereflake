@@ -58,7 +58,7 @@ Scene::preCalc()
 	std::cout << "Setting global photon map" << std::endl;
 	setPhotonMap(photonMap);
 	std::cout << "Setting caustic photon map" << std::endl;
-	setCausticsMap(causticsMap);
+	//setCausticsMap(causticsMap);
 	std::cout << "End setup" << std::endl;
 
 	std::cout << "\nPhotonMap Duration: " << duration << " seconds" << std::endl;

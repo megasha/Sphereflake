@@ -52,6 +52,8 @@ void myScene(){
 	Material* white = new Lambert(Vector3(1.0f));
 	Material* red = new Lambert(Vector3(1.0f, 0.0f, 0.0f));
 	Material* green = new Lambert(Vector3(0.0f, 1.0f, 0.0f));
+	Material* blue = new Lambert(Vector3(0.0f, 1.0f, 1.0f));
+
 
 	// create all the triangles in the bunny mesh and add to the scene
 	for (int i = 0; i < cornell->numTris(); ++i)
@@ -62,6 +64,8 @@ void myScene(){
 		t->setMaterial(white);
 		if (i == 2 || i == 3) t->setMaterial(red);
 		if (i == 0 || i == 1) t->setMaterial(green);
+		//if (i == 4 || i == 5) t->setMaterial(blue);
+
 		g_scene->addObject(t);
 
 	}
@@ -73,8 +77,8 @@ void myScene(){
 	g_scene->addObject(squareLight);
 	*/
 
-	Material* matSphere = new Lambert(Vector3(0.5f,0.0f,0.0f), Vector3(1.0f,1.0f,1.0f), Vector3(0.0f), 0, 0, 0.5f);
-	Material* matSphere1 = new Lambert(Vector3(0.0f,0.0f,0.5f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.5f);
+	Material* matSphere = new Lambert(Vector3(0.0f,0.0f,0.0f), Vector3(1.0f,1.0f,1.0f), Vector3(0.0f), 0, 0, 1.0f);
+	Material* matSphere1 = new Lambert(Vector3(0.0f,0.0f,0.0f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 1.f);
 
 
 
@@ -415,8 +419,8 @@ main(int argc, char*argv[])
 	//makeSponzaScene();
 	//makeCornellScene();
 
-	//myScene();
-	sphereFlake();
+	myScene();
+	//sphereFlake();
 	//newFlakeScene();
 
 

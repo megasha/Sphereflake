@@ -210,6 +210,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 			if (scene.trace(stage2, ray2, 0.0001f, MIRO_TMAX)){
 				L += m_refrac * stage2.material->shade(ray2, stage2, scene);
 
+				//Add indirect lighting to refraction
 				float irrad[3] = { 0, 0, 0 };
 				float hitPoint[3] = { stage2.P.x, stage2.P.y, stage2.P.z };
 				float hitNormal[3] = { stage2.N.x, stage2.N.y, stage2.N.z };
@@ -220,6 +221,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 		else if (scene.trace(stage3, ray3, 0.0001f, MIRO_TMAX)){
 			L += m_refrac * stage3.material->shade(ray3, stage3, scene);
 
+			//Add indirect lighting to refraction
 			float irrad[3] = { 0, 0, 0 };
 			float hitPoint[3] = { stage3.P.x, stage3.P.y, stage3.P.z };
 			float hitNormal[3] = { stage3.N.x, stage3.N.y, stage3.N.z };
