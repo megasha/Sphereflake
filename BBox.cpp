@@ -394,8 +394,8 @@ void BBox::split(Objects *gl_objects, std::queue<BBox*> &splitQueue, unsigned in
 	rightBox = new BBox(minRight, maxRight, rightChildren);
 	
 	//Add child box to openGL preview
-	gl_objects->push_back(leftBox);
-	gl_objects->push_back(rightBox);
+	//gl_objects->push_back(leftBox);
+	//gl_objects->push_back(rightBox);
 	
 	//This box is no longer a leaf since it has children
 	leaf = false;

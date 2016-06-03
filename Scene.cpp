@@ -157,14 +157,16 @@ Scene::trace(HitInfo& minHit, const Ray& ray, float tMin, float tMax)
 
 void
 Scene::setPhotonMap(Photon_map* photonMap){
-	//Assume one light source (lol)
-	
+	std::queue<PhotonTraceUnit> PhotonQueue;
+
+
 	int numPhotons = 0;
-	int maxPhotons = 1000000;
+	int emitedPhotons = 0;
+	int maxPhotons = 50000;
 	
 	Vector3 photonDir;
 	
-	while (numPhotons < maxPhotons) {
+	while (emitedPhotons < maxPhotons) {
 		do {
 			photonDir.x = 2.0f * ((float)rand() / (RAND_MAX)) - 1.0f;
 			photonDir.y = 2.0f * ((float)rand() / (RAND_MAX)) - 1.0f;
@@ -184,10 +186,21 @@ Scene::setPhotonMap(Photon_map* photonMap){
 			float dir[3] = { photonDir.x, photonDir.y, photonDir.z };
 			//photonMap->store(power, pos, dir);
 			//numPhotons++;
+			emitedPhotons++;
 
 			Vector3 currkd = hitInfo.material->getKd();
 			currkd *=photonPow;
-			tracePhoton(hitInfo.P,hitInfo.N,currkd, 0, numPhotons);
+
+
+			PhotonTraceUnit temp;
+			temp.pos = hitInfo.P;
+			temp.norm = hitInfo.N;
+			temp.dir = photonDir;
+			temp.pow = currkd;
+			temp.depth = 0;
+			PhotonQueue.push(temp);
+
+			//tracePhoton(hitInfo.P,hitInfo.N,photonDir,currkd, 0, numPhotons);
 
 			/****FOR DEBUGGING PHOTONMAP**/
 			/*
@@ -204,7 +217,13 @@ Scene::setPhotonMap(Photon_map* photonMap){
 
 	}
 
-	photonMap->scale_photon_power(1.0f/maxPhotons);
+	while (!PhotonQueue.empty()) {
+		PhotonTraceUnit temp = PhotonQueue.front();
+		tracePhoton(temp.pos, temp.norm, temp.dir, temp.pow, PhotonQueue, temp.depth,numPhotons);
+		PhotonQueue.pop();
+	}
+
+	photonMap->scale_photon_power(1.0f/numPhotons);
 	photonMap->balance();
 	
 
@@ -287,10 +306,11 @@ Scene::setCausticsMap(Photon_map* photonMap){
 
 
 void
-Scene::tracePhoton(Vector3 pos, Vector3 norm, Vector3 pow, int depth, int &numPhotons) {
+Scene::tracePhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, std::queue<PhotonTraceUnit> &PhotonQueue, int depth, int &numPhotons) {
 	//if (depth == 8) return;
 
 	/***Indirrect Diffuse Lighting**/
+	/*
 	float theta, phi;
 	Vector3 Nx, Nz;
 	Vector3 randV;
@@ -328,18 +348,21 @@ Scene::tracePhoton(Vector3 pos, Vector3 norm, Vector3 pow, int depth, int &numPh
 
 	//Convert to world coordinates
 	randomRay = randomRay.x * Nx + randomRay.y * norm + randomRay.z * Nz;
+	*/
 
+	Vector3 reflectRay;
+	reflectRay = -2.0*dot(dir, norm)*norm + dir;
 
 	Ray sampleRay;
 	sampleRay.o = pos;
-	sampleRay.d = randomRay.normalize();
+	sampleRay.d = reflectRay.normalize();
 	HitInfo hitRand;
 	if (trace(hitRand, sampleRay, 0.001f, MIRO_TMAX)) {
 		Vector3 currkd = hitRand.material->getKd();
 
 		float power[3] = { pow.x, pow.y, pow.z };
 		float pos[3] = { hitRand.P.x, hitRand.P.y, hitRand.P.z };
-		float dir[3] = { randomRay.x, randomRay.y, randomRay.z };
+		float dir[3] = { reflectRay.x, reflectRay.y, reflectRay.z };
 		photonMap->store(power, pos, dir);
 
 		currkd *= pow;
@@ -359,7 +382,14 @@ Scene::tracePhoton(Vector3 pos, Vector3 norm, Vector3 pow, int depth, int &numPh
 		*/
 
 		if (diffRoulette < diffuseComp) {
-			tracePhoton(hitRand.P, hitRand.N, currkd, depth + 1, numPhotons);
+			//tracePhoton(hitRand.P, hitRand.N,reflectRay, currkd, depth + 1, numPhotons);
+			PhotonTraceUnit temp;
+			temp.pos = hitRand.P;
+			temp.norm = hitRand.N;
+			temp.dir = reflectRay;
+			temp.pow = currkd;
+			temp.depth = depth + 1;
+			PhotonQueue.push(temp);
 		}
 	}
 }

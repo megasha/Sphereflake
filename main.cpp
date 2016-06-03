@@ -259,7 +259,7 @@ sphereFlake() {
 	g_image = new Image;
 
 	g_image->resize(512, 512);
-	g_scene->setSamples(100);
+	g_scene->setSamples(5);
 
 
 	// set up the camera

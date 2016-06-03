@@ -22,6 +22,14 @@ struct CausticTraceUnit{
 	HitInfo oldHit;
 };
 
+struct PhotonTraceUnit{
+	Vector3 pos;
+	Vector3 norm;
+	Vector3 dir;
+	Vector3 pow;
+	int depth;
+};
+
 class Scene
 {
 public:
@@ -45,7 +53,7 @@ public:
 	void incNumRays() { numRays++; }
 	void setPhotonMap(Photon_map*);
 	void setCausticsMap(Photon_map*);
-	void tracePhoton(Vector3 pos, Vector3 norm, Vector3 pow, int depth, int &numPhotons);
+	void tracePhoton(Vector3 pos, Vector3 norm, Vector3 dir,Vector3 pow, std::queue<PhotonTraceUnit>&, int depth, int &numPhotons);
 	void traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, std::queue<CausticTraceUnit> &, int &numPhotons, float dist,HitInfo oldHit, int depth);
 
 	Photon_map *photonMap;
