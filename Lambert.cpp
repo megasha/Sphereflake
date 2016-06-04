@@ -212,8 +212,10 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 			ray2.d = reflection.normalize();
 			ray2.rayNum = ray.rayNum + 1;
 			if (scene.trace(stage2, ray2, 0.0001f, MIRO_TMAX)){
+
 				L += m_refrac * stage2.material->shade(ray2, stage2, scene);
 				
+				//If we are at the end of a refracted ray, calculate beer's law
 				if (hit.material == stage2.material) {
 					Vector3 absorbance = stage2.material->getGlass()* (stage2.P - ray2.o).length();
 					absorbance = Vector3(expf(absorbance.x), expf(absorbance.y), expf(absorbance.z));
@@ -225,18 +227,20 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 				float irrad[3] = { 0, 0, 0 };
 				float hitPoint[3] = { stage2.P.x, stage2.P.y, stage2.P.z };
 				float hitNormal[3] = { stage2.N.x, stage2.N.y, stage2.N.z };
-				scene.photonMap->irradiance_estimate(irrad, hitPoint, hitNormal, 0.5f, 1000);
+				scene.photonMap->irradiance_estimate(irrad, hitPoint, hitNormal, 0.5f, 500);
 				L += stage2.material->getKd()*Vector3(irrad[0], irrad[1], irrad[2]);
 
 				//Add indirect beer?
 				if (hit.material == stage2.material) {
 					L += stage2.material->getGlass()*Vector3(irrad[0], irrad[1], irrad[2]);
 				}
+				
 			}
 		}
 		else if (scene.trace(stage3, ray3, 0.0001f, MIRO_TMAX)){
 			L += m_refrac * stage3.material->shade(ray3, stage3, scene);
 
+			//If we are at the end of a refracted ray, calculate beer's law
 			if (hit.material == stage3.material) {
 				Vector3 absorbance = stage3.material->getGlass() * (stage3.P-ray3.o).length();
 				absorbance = Vector3(expf(absorbance.x), expf(absorbance.y), expf(absorbance.z));
@@ -247,7 +251,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 			float irrad[3] = { 0, 0, 0 };
 			float hitPoint[3] = { stage3.P.x, stage3.P.y, stage3.P.z };
 			float hitNormal[3] = { stage3.N.x, stage3.N.y, stage3.N.z };
-			scene.photonMap->irradiance_estimate(irrad, hitPoint, hitNormal, 0.5f, 1000);
+			scene.photonMap->irradiance_estimate(irrad, hitPoint, hitNormal, 0.5f, 500);
 			L += stage3.material->getKd()*Vector3(irrad[0], irrad[1], irrad[2]);
 
 			//Add indirect beer?

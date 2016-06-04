@@ -48,24 +48,15 @@ Scene::preCalc()
     }
 	m_bvh.build(&m_objects);
 
+	//Setup photon map
 	photonMap = new Photon_map(10000000);
 	causticsMap = new Photon_map(10000000);
-
-	std::clock_t start;
-	double duration;
-	start = std::clock();
 
 	std::cout << "Setting global photon map" << std::endl;
 	setPhotonMap(photonMap);
 	std::cout << "Setting caustic photon map" << std::endl;
 	setCausticsMap(causticsMap);
-	std::cout << "End setup" << std::endl;
-
-	std::cout << "\nPhotonMap Duration: " << duration << " seconds" << std::endl;
-	duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-
-
-   
+	std::cout << "End setup" << std::endl; 
 
 }
 
@@ -101,26 +92,27 @@ Scene::raytraceImage(Camera *cam, Image *img)
 					sampleHits++;
 					shadeResult += hitInfo.material->shade(ray, hitInfo, *this);	
 
-					//Add indirect lighting
-					
+					//Add indirect lighting	
 					float irrad[3] = { 0, 0, 0 };
 					float hitPoint[3] = { hitInfo.P.x, hitInfo.P.y, hitInfo.P.z };
 					float hitNormal[3] = { hitInfo.N.x, hitInfo.N.y, hitInfo.N.z };
-					photonMap->irradiance_estimate(irrad, hitPoint, hitNormal, 0.5f, 1000);
+					photonMap->irradiance_estimate(irrad, hitPoint, hitNormal, 0.5f, 500);
 					Vector3 irradVec(irrad[0], irrad[1], irrad[2]);
 
+					//Only add indiffect diffuse to non-refractive materials
 					if (hitInfo.material->getRefrac() <= 0.0)
 						shadeResult += hitInfo.material->getKd()* irradVec;
 					
 					//Add caustics
 					float irradCaus[3] = { 0, 0, 0 };
-					causticsMap->irradiance_estimate(irradCaus, hitPoint, hitNormal, 0.5f, 1000);
+					causticsMap->irradiance_estimate(irradCaus, hitPoint, hitNormal, 0.5f, 500);
 					Vector3 irradCausVec(irradCaus[0], irradCaus[1], irradCaus[2]);
 					shadeResult += irradCausVec;
 
 
 				}
 			}
+			//Pixel sampling
 			if (hit) {
 				shadeResult /= (float) sampleHits;
 				img->setPixel(i, j, shadeResult);
@@ -143,7 +135,7 @@ Scene::raytraceImage(Camera *cam, Image *img)
 	std::cout << "Total Number of Rays: " << numRays << std::endl;
 	std::cout << "Total Number of Ray Box Intersections: " << bCount << std::endl;
 	std::cout << "Total Number of Ray Triangle Intersections: " << tCount << std::endl;
-	std::cout << "\n~~~~~~~~~~~~ END OF TASK 3 STATS ~~~~~~~~~~~~~~\n" << std::endl;
+	std::cout << "\n~~~~~~~~~~~~ END OF STATS ~~~~~~~~~~~~~~\n" << std::endl;
 
 	std::cout << "\nRendering Duration: " << duration << " seconds" << std::endl;
 
@@ -168,6 +160,7 @@ Scene::setPhotonMap(Photon_map* photonMap){
 	
 	Vector3 photonDir;
 	
+	//Rejection sampling for photons from point light
 	while (emitedPhotons < maxPhotons) {
 		do {
 			photonDir.x = 2.0f * ((float)rand() / (RAND_MAX)) - 1.0f;
@@ -180,6 +173,7 @@ Scene::setPhotonMap(Photon_map* photonMap){
 		photonRay.o = m_lights[0]->position();
 		photonRay.d = photonDir;
 
+		//If photon hits something, it's valid
 		if (trace(hitInfo, photonRay)) {
 			float photonPow = m_lights[0]->wattage();
 
@@ -219,14 +213,18 @@ Scene::setPhotonMap(Photon_map* photonMap){
 
 	}
 
+	//Queue for photons
 	while (!PhotonQueue.empty()) {
 		PhotonTraceUnit temp = PhotonQueue.front();
 		tracePhoton(temp.pos, temp.norm, temp.dir, temp.pow, PhotonQueue, temp.depth,numPhotons);
 		PhotonQueue.pop();
 	}
 
+	//Set photon power and balance tree
 	photonMap->scale_photon_power(1.0f/numPhotons);
 	photonMap->balance();
+
+	std::cout << "Num Photons: " << numPhotons << std::endl;
 	
 
 }
@@ -242,6 +240,7 @@ Scene::setCausticsMap(Photon_map* photonMap){
 
 	Vector3 photonDir;
 
+	//Rejection sampling for photons from point light
 	while (initialHits < maxPhotons) {
 		do {
 			photonDir.x = 2.0f * ((float)rand() / (RAND_MAX)) - 1.0f;
@@ -254,6 +253,7 @@ Scene::setCausticsMap(Photon_map* photonMap){
 		photonRay.o = m_lights[0]->position();
 		photonRay.d = photonDir;
 
+		//If photon hits a refractive surface, it is valid
 		if (trace(hitInfo, photonRay)) {
 			float photonPow = m_lights[0]->wattage();
 
@@ -293,14 +293,19 @@ Scene::setCausticsMap(Photon_map* photonMap){
 
 	std::cout << "FINISHED EMITTING STUFF" << std::endl;
 
+	//Caustic queue
 	while (!CausticQueue.empty()) {
 		CausticTraceUnit temp = CausticQueue.front();
 		traceCausticPhoton(temp.pos, temp.norm, temp.dir, temp.pow, CausticQueue, numPhotons, temp.dist, temp.oldHit, temp.depth);
 		CausticQueue.pop();
 	}
 
+	//Set photon power and balance tree
 	photonMap->scale_photon_power(1.0f / maxPhotons);
 	photonMap->balance();
+
+	std::cout << "Num Caustic Photons: " << numPhotons << std::endl;
+
 
 
 }
@@ -309,49 +314,6 @@ Scene::setCausticsMap(Photon_map* photonMap){
 
 void
 Scene::tracePhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, std::queue<PhotonTraceUnit> &PhotonQueue, int depth, int &numPhotons) {
-	//if (depth == 8) return;
-
-	/***Indirrect Diffuse Lighting**/
-	/*
-	float theta, phi;
-	Vector3 Nx, Nz;
-	Vector3 randV;
-	int temp0, temp1, temp2;
-	float rand0 = ((float)rand() / (RAND_MAX));
-	float rand1 = ((float)rand() / (RAND_MAX));
-
-	//Create random vector
-	temp0 = rand() % 2;
-	temp1 = rand() % 2;
-	temp2 = rand() % 2;
-	randV.x = (float)rand();
-	randV.y = (float)rand();
-	randV.z = (float)rand();
-	if (temp0) randV.x = -randV.x;
-	if (temp1) randV.y = -randV.y;
-	if (temp2) randV.z = -randV.z;
-	randV.normalize();
-
-	//Create coordinate axis where hit normal is y axis
-	Nx = cross(norm, randV);
-	Nz = cross(Nx, norm);
-
-	//Get random spherical coordinates
-	theta = sqrtf(rand0);
-	theta = asinf(theta);
-	phi = 2.0f * PI * (rand1);
-
-
-	//Convert random spherical coordinates to local cartesian coordinates
-	Vector3 randomRay;
-	randomRay.x = cosf(phi) * sinf(theta);
-	randomRay.y = sinf(phi) * sinf(phi);
-	randomRay.z = cosf(theta);
-
-	//Convert to world coordinates
-	randomRay = randomRay.x * Nx + randomRay.y * norm + randomRay.z * Nz;
-	*/
-
 	Vector3 reflectRay;
 	reflectRay = -2.0*dot(dir, norm)*norm + dir;
 
@@ -359,6 +321,8 @@ Scene::tracePhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, std::que
 	sampleRay.o = pos;
 	sampleRay.d = reflectRay.normalize();
 	HitInfo hitRand;
+	
+	//Trace reflected photon
 	if (trace(hitRand, sampleRay, 0.001f, MIRO_TMAX)) {
 		Vector3 currkd = hitRand.material->getKd();
 
@@ -370,18 +334,10 @@ Scene::tracePhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, std::que
 		currkd *= pow;
 		numPhotons++;
 
+		//Do russian roulette
 		Vector3 kd = hitRand.material->getKd();
 		float diffuseComp = (kd.x + kd.y + kd.z) / 3.0f;
 		float diffRoulette = ((float)rand() / (RAND_MAX));
-
-		/*FOR DEBUGGING PURPOSES*/
-		/*
-		Sphere *photonSphere = new Sphere();
-		photonSphere->setCenter(Vector3(pos[0], pos[1], pos[2]));
-		photonSphere->setRadius(0.05f);
-		photonDebug.push_back(photonSphere);
-		m_objects.push_back(photonSphere);
-		*/
 
 		if (diffRoulette < diffuseComp) {
 			//tracePhoton(hitRand.P, hitRand.N,reflectRay, currkd, depth + 1, numPhotons);
@@ -393,6 +349,15 @@ Scene::tracePhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, std::que
 			temp.depth = depth + 1;
 			PhotonQueue.push(temp);
 		}
+
+		/*FOR DEBUGGING PURPOSES*/
+		/*
+		Sphere *photonSphere = new Sphere();
+		photonSphere->setCenter(Vector3(pos[0], pos[1], pos[2]));
+		photonSphere->setRadius(0.05f);
+		photonDebug.push_back(photonSphere);
+		m_objects.push_back(photonSphere);
+		*/
 	}
 }
 

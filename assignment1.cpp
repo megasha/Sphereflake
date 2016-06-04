@@ -233,7 +233,7 @@ makeBunnyScene()
 	g_scene = new Scene;
 	g_image = new Image;
 
-	g_image->resize(128, 128);
+	g_image->resize(512, 512);
 
 	g_scene->setBackground(Vector3(0.0f, 0.0f, 0.2f));
 
@@ -264,7 +264,7 @@ makeBunnyScene()
 	g_scene->addLight(light3);
 
 	Material* matFloor = new Lambert(Vector3(0.0f, 0.0f, 0.8f), Vector3(0.0f), Vector3(0.0f, 0.0f, 0.0f), 0, 0, 0);
-	Material* matBunny = new Lambert(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f), 0, 0.8f, 0.0f);
+	Material* matBunny = new Lambert(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f), 0,0.0f,1.0f);
 	Material* matSolidSphere = new Lambert(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.1f, 0.1f, 0.1f), Vector3(0.0f), 0, 0, 0);
 
 	Sphere * sphere = new Sphere;
