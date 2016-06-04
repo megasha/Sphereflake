@@ -108,7 +108,9 @@ Scene::raytraceImage(Camera *cam, Image *img)
 					float hitNormal[3] = { hitInfo.N.x, hitInfo.N.y, hitInfo.N.z };
 					photonMap->irradiance_estimate(irrad, hitPoint, hitNormal, 0.5f, 1000);
 					Vector3 irradVec(irrad[0], irrad[1], irrad[2]);
-					shadeResult += hitInfo.material->getKd()* irradVec;
+
+					if (hitInfo.material->getRefrac() <= 0.0)
+						shadeResult += hitInfo.material->getKd()* irradVec;
 					
 					//Add caustics
 					float irradCaus[3] = { 0, 0, 0 };
@@ -485,12 +487,13 @@ Scene::traceCausticPhoton(Vector3 pos, Vector3 norm, Vector3 dir, Vector3 pow, s
 			causticsMap->store(power, hitPoint, direction);
 			numPhotons++;
 
-			
+			/*
 			Sphere *photonSphere = new Sphere();
 			photonSphere->setCenter(stage3.P);
 			photonSphere->setRadius(0.05f);
 			photonDebug.push_back(photonSphere);
 			m_objects.push_back(photonSphere);
+			*/
 			
 		}
 		else {

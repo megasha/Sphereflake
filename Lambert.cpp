@@ -230,7 +230,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 
 				//Add indirect beer?
 				if (hit.material == stage2.material) {
-					//L += stage2.material->getGlass()*Vector3(irrad[0], irrad[1], irrad[2]);
+					L += stage2.material->getGlass()*Vector3(irrad[0], irrad[1], irrad[2]);
 				}
 			}
 		}
@@ -252,7 +252,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, Scene& scene) const
 
 			//Add indirect beer?
 			if (hit.material == stage3.material) {
-				//L += stage3.material->getGlass()*Vector3(irrad[0], irrad[1], irrad[2]);
+				L += stage3.material->getGlass()*Vector3(irrad[0], irrad[1], irrad[2]);
 			}
 		}
 		else L += m_refrac *scene.bg();

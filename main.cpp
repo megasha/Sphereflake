@@ -77,8 +77,8 @@ void myScene(){
 	g_scene->addObject(squareLight);
 	*/
 
-	Material* matSphere = new Lambert(Vector3(0.0f, 0.0f, 0.0f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 1.0f, Vector3(0.2f, 0.0f, 0.0f));
-	Material* matSphere1 = new Lambert(Vector3(0.0f, 0.0f, 0.0f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 1.0f, Vector3(0.0f, 0.0f, 0.2f));
+	Material* matSphere = new Lambert(Vector3(0.2f, 0.0f, 0.0f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 1.0f, Vector3(0.2f, 0.0f, 0.0f));
+	Material* matSphere1 = new Lambert(Vector3(0.0f, 0.0f, 0.2f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 1.0f, Vector3(0.0f, 0.0f, 0.2f));
 
 
 
@@ -109,7 +109,7 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	float rand0 = ((float)rand() / (RAND_MAX));
 	float rand1 = ((float)rand() / (RAND_MAX));
 	float rand2 = ((float)rand() / (RAND_MAX));
-	Material* matSphere0 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
+	Material* matSphere0 = new Lambert(Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f, Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f));
 
 	//Add sphere0
 	xform = currMat;
@@ -126,7 +126,7 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	rand0 = ((float)rand() / (RAND_MAX));
 	rand1 = ((float)rand() / (RAND_MAX));
 	rand2 = ((float)rand() / (RAND_MAX));
-	Material* matSphere1 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
+	Material* matSphere1 = new Lambert(Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f, Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f));
 
 	//Add sphere1
 	xform = currMat;
@@ -144,7 +144,7 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	rand0 = ((float)rand() / (RAND_MAX));
 	rand1 = ((float)rand() / (RAND_MAX));
 	rand2 = ((float)rand() / (RAND_MAX));
-	Material* matSphere2 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
+	Material* matSphere2 = new Lambert(Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f, Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f));
 
 
 	//Add sphere2
@@ -163,7 +163,7 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	rand0 = ((float)rand() / (RAND_MAX));
 	rand1 = ((float)rand() / (RAND_MAX));
 	rand2 = ((float)rand() / (RAND_MAX));
-	Material* matSphere3 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
+	Material* matSphere3 = new Lambert(Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f, Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f));
 
 	//Add sphere3
 	xform = currMat;
@@ -181,7 +181,7 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	rand0 = ((float)rand() / (RAND_MAX));
 	rand1 = ((float)rand() / (RAND_MAX));
 	rand2 = ((float)rand() / (RAND_MAX));
-	Material* matSphere4 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
+	Material* matSphere4 = new Lambert(Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f, Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f));
 	
 
 	//Add sphere4
@@ -200,7 +200,7 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	rand0 = ((float)rand() / (RAND_MAX));
 	rand1 = ((float)rand() / (RAND_MAX));
 	rand2 = ((float)rand() / (RAND_MAX));
-	Material* matSphere5 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
+	Material* matSphere5 = new Lambert(Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f, Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f));
 
 	//Add sphere5
 	xform = currMat;
@@ -218,7 +218,7 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	rand0 = ((float)rand() / (RAND_MAX));
 	rand1 = ((float)rand() / (RAND_MAX));
 	rand2 = ((float)rand() / (RAND_MAX));
-	Material* matSphere6 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
+	Material* matSphere6 = new Lambert(Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f, Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f));
 	
 	//Add sphere6
 	xform = currMat;
@@ -236,7 +236,7 @@ void branch(Vector3 pos, float radius, Scene* g_scene, Material* matSphere, Matr
 	rand0 = ((float)rand() / (RAND_MAX));
 	rand1 = ((float)rand() / (RAND_MAX));
 	rand2 = ((float)rand() / (RAND_MAX));
-	Material* matSphere7 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
+	Material* matSphere7 = new Lambert(Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f, Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f));
 
 	//Add sphere7
 	xform = currMat;
@@ -277,7 +277,7 @@ sphereFlake() {
 	PointLight * light = new PointLight;
 	light->setPosition(Vector3(0.0f, 2.7f, 0.0f));
 	light->setColor(Vector3(1, 1, 1));
-	light->setWattage(25);
+	light->setWattage(50);
 	g_scene->addLight(light);
 
 	Matrix4x4 trans;
@@ -307,7 +307,7 @@ sphereFlake() {
 	float rand0 = ((float)rand() / (RAND_MAX));
 	float rand1 = ((float)rand() / (RAND_MAX));
 	float rand2 = ((float)rand() / (RAND_MAX));
-	Material* matSphere1 = new Lambert(Vector3(rand0,rand1,rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
+	Material* matSphere1 = new Lambert(Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f, Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f));
 
 
 	Vector3 position(Vector3(0.0f));
@@ -378,7 +378,7 @@ newFlakeScene() {
 	float rand0 = ((float)rand() / (RAND_MAX));
 	float rand1 = ((float)rand() / (RAND_MAX));
 	float rand2 = ((float)rand() / (RAND_MAX));
-	Material* matSphere1 = new Lambert(Vector3(rand0, rand1, rand2), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
+	Material* matSphere1 = new Lambert(Vector3(rand0*0.2f, rand1*0.2f, rand2*0.2f), Vector3(1.0f, 1.0f, 1.0f), Vector3(0.0f), 0, 0, 0.8f);
 
 
 	
@@ -419,8 +419,8 @@ main(int argc, char*argv[])
 	//makeSponzaScene();
 	//makeCornellScene();
 
-	myScene();
-	//sphereFlake();
+	//myScene();
+	sphereFlake();
 	//newFlakeScene();
 
 
